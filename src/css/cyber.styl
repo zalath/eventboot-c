@@ -1,0 +1,33 @@
+.clipbtn
+  position relative
+  float left
+  cursor pointer
+  margin 0 .3rem .2rem 0
+  padding .2rem .7rem
+  border solid 2px red
+  background black
+  &::before
+    background-color: black;
+    border-top: 2px solid red;
+    bottom: -4px;
+    content: "";
+    height: 7px;
+    left: -6px;
+    position: absolute;
+    transform: rotate(45deg);
+    width: 12px;
+  &::after
+    background-color: black;
+    border-bottom: 2px solid red;
+    top: -4px;
+    content: "";
+    height: 7px;
+    right: -6px;
+    position: absolute;
+    transform: rotate(45deg);
+    width: 12px;
+  &:hover
+    background red
+    color white
+    .mark
+      display none
