@@ -1,7 +1,15 @@
 <template>
-  <div class="popupcheck" v-if="ispopupcheck">
-    <a v-if="iscopy" class='checktxt fa fa-copy'/>
-    <a class='checktxt fa fa-check'/>
+  <div class="popupcheck" v-if="ispopup">
+    <div v-if="ispopupcheck">
+      <a class='checktxt fa fa-check'/>
+    </div>
+    <div v-if="iscopy">
+      <a class='checktxt fa fa-copy'/>
+    </div>
+    <div v-if="iserror">
+      <a class="checktxt fa fa-times" />
+      <p>{{ errormsg }}</p>
+    </div>
   </div>
 </template>
 <script>
@@ -9,29 +17,44 @@ export default {
   name: '',
   data: function() {
     return {
+      ispopup: false,
       ispopupcheck: false,
-      iscopy: false
+      iscopy: false,
+      iserror: false,
+      errormsg: ''
     }
   },
   created() {
     this.$bus.on('popupcheck', this.show)
     this.$bus.on('popupcopyed', this.showcopy)
+    this.$bus.on('popuperror', this.showerror)
   },
   methods: {
     show() {
+      this.ispopup = true
       this.ispopupcheck = true
       this.hide()
     },
     showcopy() {
+      this.ispopup = true
       this.iscopy = true
-      this.ispopupcheck = true
+      this.hide()
+    },
+    showerror(msg) {
+      console.log(msg)
+      this.ispopup = true
+      this.iserror = true
+      this.errormsg = msg
       this.hide()
     },
     hide() {
       setTimeout(() => {
+        this.ispopup = false
         this.ispopupcheck = false
         this.iscopy = false
-      }, 200);
+        this.iserror = false
+        this.errormsg = ''
+      }, 300);
     }
   }
 }

@@ -9,6 +9,9 @@ conf.getconfig = function() {
   fs.readFile(path, 'utf8', function (err, data) {
     if (!err) {
       global.gconf = JSON.parse(data)
+    } else {
+      const defaultConf = '{"starter":[],"boot":[],"conf":{"api":"http://192.168.2.1:10488/","src":""}}'
+      conf.setconfig(win, Json.parse(defaultConf))
     }
   });
 }

@@ -46,7 +46,7 @@ export default {
       page: 6,
       menu: [],
       isconf: false,
-      iskeyfile: true
+      iskeyfile: false
     };
   },
   created() {

@@ -205,7 +205,10 @@ export default {
       this.newnode = line
     },
     save() {
-      if ((this.editnode.type === 'pwd' && this.newnode.type === 'pwd' && this.editnode.ct !== this.newnode.ct) || (this.editnode.type !== 'pwd' && this.newnode.type === 'pass')) {
+      if ((this.editnode.type === 'pwd' && this.newnode.type === 'pwd' && this.editnode.ct !== this.newnode.ct) ||
+          (this.editnode.type !== 'pwd' && this.newnode.type === 'pass') ||
+          (this.newnode.type === 'pwd' && this.showadd === true)
+      ) {
         var keypass = this.readkeypass('s')
         if (!keypass) return
         this.$ipc.send('encpass', {pass: keypass, val: this.newnode.ct})
@@ -276,17 +279,22 @@ export default {
       this.passforread = val
       var pass = this.readkeypass('r')
       if (!pass) return
-      var res = encpt.decpass(pass, val, null)
-      this.copy(res)
+      try {
+        var res = encpt.decpass(pass, val, null)
+        this.copy(res)
+      } catch (e) {
+        this.$bus.emit('popuperror', e.message)
+        this.showpass = true
+      }
     },
     setkeypass() {
       this.$store.commit('setKeypass', this.keypass)
+      this.showpass = false
       if (this.passtype === 'r') {
         this.copypwd(this.passforread)
       } else if (this.passtype === 's') {
         this.save()
       }
-      this.showpass = false
     },
     readkeypass(type) {
       var pass = this.$store.state.keypass
@@ -311,6 +319,8 @@ export default {
           this.keypass = res.data.val
           this.setkeypass()
         }
+      }).catch((e) => {
+        this.showpass = true
       })
     },
     fold(i) {
