@@ -65,7 +65,7 @@
       </div>
     </div>
     <div v-if="showpass" class="add keyfilepage addpage">
-      <a class="clipbtn menubtn" @click="this.showpass = false">
+      <a class="clipbtn menubtn" @click="this.showpass = false;this.passtype = ''">
         <i class="fa fa-times" />
       </a>
       <div>
@@ -212,7 +212,13 @@ export default {
         var keypass = this.readkeypass('s')
         if (!keypass) return
         this.$ipc.send('encpass', {pass: keypass, val: this.newnode.ct})
-        var res = encpt.encpass(keypass, this.newnode.ct, null)
+        try {
+          var res = encpt.encpass(keypass, this.newnode.ct, null)
+        } catch (e) {
+          this.$bus.emit('popuperror', e.message)
+          this.showpass = true
+          return
+        }
         this.newnode.ct = res
       }
       this.saveline()
@@ -297,9 +303,9 @@ export default {
       }
     },
     readkeypass(type) {
+      this.passtype = type
       var pass = this.$store.state.keypass
       if (!pass) {
-        this.passtype = type
         // 读服务端
         // this.showpass = true
         this.readkeypassRemote()
