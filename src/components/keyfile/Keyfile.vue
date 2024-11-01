@@ -12,9 +12,9 @@
     <div class='keyfileline' v-for='(l, ind) in this.lines' :key='ind' @mouseenter="showFuncBtn(ind)"
       @mouseleave="hideFuncBtn(ind)" v-dragto="ind">
       <span :class="l.foldto !== undefined? folds[l.foldto] === false? 'foldclose':'foldopen':''">
-        <span v-if="l.type == 'fold'">
+        <span class="foldbar" v-if="l.type == 'fold'">
           <a @click="copy(l.name)">
-            --&emsp;&emsp;{{ l.name }}
+            &emsp;{{ l.name }}
           </a>
           &nbsp;
           <a class="funcbtn" @click="fold(ind)">
@@ -22,9 +22,9 @@
           </a>
         </span>
         <span v-else>
-          <span><a @click="copy(l.name)">{{ l.name }}</a>&emsp;--&emsp;
+          <span><a @click="copy(l.name)">{{ l.name }}</a>&nbsp;:&emsp;
             <a v-if="l.type === 'url'" @click="openUrlOut(l.ct)">{{ l.ct }}</a>
-            <a v-if="l.type === 'pwd'" @click="copypwd(l.ct)">{{ l.ct }}</a>
+            <a v-if="l.type === 'pwd'" @click="copypwd(l.ct)">********</a>
             <a v-if="l.type === 'txt'" @click="copy(l.ct)">{{ l.ct }}</a>
           </span>
         </span>
@@ -381,6 +381,10 @@ export default {
   display none
 .bold
   font-weight bold
+.foldbar
+  background-color red
+  color white
+  padding 0 1rem
 </style>
 <style lang="stylus" src='../../css/cyber.styl' scoped>
 </style>
