@@ -1,4 +1,8 @@
 # v3
+
+### Tip
+functions except starter and tool, should be supported by /task-go project
+
 ### porpuse
 - one page √
 
