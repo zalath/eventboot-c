@@ -8,73 +8,100 @@
         <i class="fa fa-angle-left bold"></i>
         <i class="fa fa-angle-left bold"></i>
       </div>
+      <div class="menubtn clipbtn" @click="showpass = true">
+        <i class="fa fa-key bold"></i>
+      </div>
+      <div class="menubtn">
+        <div v-if="!isSync" title="同步到后台sync to backend" class="clipbtn" @click="this.isSync=true">
+          <i class="fa fa-upload bold"></i>
+        </div>
+        <div v-if="isSync" class="clipbtn colbtn" @click="this.isSync=false;">
+          <i class="fa fa-times bold"></i>
+        </div>
+        <div v-if="isSync" class="clipbtn colbtn" @click="synckeyfile">
+          <i class="fa fa-check bold"></i>
+        </div>
+      </div>
+      <div class="menubtn">
+        <div v-if="!isDownload" title="从后台下载download from backend" class="clipbtn" @click="this.isDownload=true">
+          <i class="fa fa-download bold"></i>
+        </div>
+        <div v-if="isDownload" class="clipbtn colbtn" @click="this.isDownload=false">
+          <i class="fa fa-times bold"></i>
+        </div>
+        <div v-if="isDownload" class="clipbtn colbtn" @click="downloadkeyfile">
+          <i class="fa fa-check bold"></i>
+        </div>
+      </div>
     </div>
-    <div class='keyfileline' v-for='(l, ind) in this.lines' :key='ind' @mouseenter="showFuncBtn(ind)"
-      @mouseleave="hideFuncBtn(ind)" v-dragto="ind">
-      <span :class="l.foldto !== undefined? folds[l.foldto] === false? 'foldclose':'foldopen':''">
-        <span v-if="l.type == 'fold'">
-          <a @click="copy(l.name)">
-            --&emsp;&emsp;{{ l.name }}
-          </a>
-          &nbsp;
-          <a class="funcbtn" @click="fold(ind)">
-            <i class="fa fa-angle-down bold"></i>
-          </a>
-        </span>
-        <span v-else>
-          <span><a @click="copy(l.name)">{{ l.name }}</a>&emsp;--&emsp;
-            <a v-if="l.type === 'url'" @click="openUrlOut(l.ct)">{{ l.ct }}</a>
-            <a v-if="l.type === 'pwd'" @click="copypwd(l.ct)">{{ l.ct }}</a>
-            <a v-if="l.type === 'txt'" @click="copy(l.ct)">{{ l.ct }}</a>
+    <div class="box">
+      <div class='keyfileline' v-for='(l, ind) in this.lines' :key='ind' @mouseenter="showFuncBtn(ind)"
+        @mouseleave="hideFuncBtn(ind)" v-dragto="ind">
+        <span :class="l.foldto !== undefined? folds[l.foldto] === false? 'foldclose':'foldopen':''">
+          <span v-if="l.type == 'fold'">
+            <a @click="copy(l.name)">
+              --&emsp;&emsp;{{ l.name }}
+            </a>
+            &nbsp;
+            <a class="funcbtn" @click="fold(ind)">
+              <i class="fa fa-angle-down bold"></i>
+            </a>
           </span>
+          <span v-else>
+            <span><a @click="copy(l.name)">{{ l.name }}</a>&emsp;--&emsp;
+              <a v-if="l.type === 'url'" @click="openUrlOut(l.ct)">{{ l.ct }}</a>
+              <a v-if="l.type === 'pwd'" @click="copypwd(l.ct)">{{ l.ct }}</a>
+              <a v-if="l.type === 'txt'" @click="copy(l.ct)">{{ l.ct }}</a>
+            </span>
+          </span>
+          &nbsp;
+          <btns v-show="l.isfuncbtn" :l="l" :i="ind" />
+          &nbsp;
+          <a v-show="l.isfuncbtn" class="funcbtn" v-drag="ind">
+            <i class="fa fa-reorder"></i>
+          </a>
+          <a v-show="l.ismoveto" class="funcbtn">
+            <i class="fa fa-arrow-left"></i>
+          </a>
         </span>
-        &nbsp;
-        <btns v-show="l.isfuncbtn" :l="l" :i="ind" />
-        &nbsp;
-        <a v-show="l.isfuncbtn" class="funcbtn" v-drag="ind">
-          <i class="fa fa-reorder"></i>
-        </a>
-        <a v-show="l.ismoveto" class="funcbtn">
-          <i class="fa fa-arrow-left"></i>
-        </a>
-      </span>
-    </div>
-    <a @click="showadd = true">
-      <i class="fa fa-plus"></i>
-    </a>
-    <div v-if="showadd" class="add keyfilepage addpage">
-      <a class="clipbtn menubtn" @click="this.showadd = false, this.showedit = false">
-        <i class="fa fa-times" />
+      </div>
+      <a @click="showadd = true">
+        <i class="fa fa-plus"></i>
       </a>
-      <div>
-        <p />
-        name: <input class="input" v-model="newnode.name" />
-        <p />
-        content: <input class="input" v-model="newnode.ct" />
-        <p />
-        type: <select class="input" v-model="newnode.type">
-          <option value="txt">文本/txt</option>
-          <option value="pwd">密码/pwd</option>
-          <option value="url">链接/link</option>
-          <option value="fold">折叠/fold</option>
-        </select>
+      <div v-if="showadd" class="add keyfilepage addpage">
+        <a class="clipbtn menubtn" @click="this.showadd = false, this.showedit = false">
+          <i class="fa fa-times" />
+        </a>
+        <div>
+          <p />
+          name: <input class="input" v-model="newnode.name" />
+          <p />
+          content: <input class="input" v-model="newnode.ct" />
+          <p />
+          type: <select class="input" v-model="newnode.type">
+            <option value="txt">文本/txt</option>
+            <option value="pwd">密码/pwd</option>
+            <option value="url">链接/link</option>
+            <option value="fold">折叠/fold</option>
+          </select>
+        </div>
+        <p>&nbsp;</p>
+        <div>
+          <a class="clipbtn menubtn" @click="save()">Save</a>
+        </div>
       </div>
-      <p>&nbsp;</p>
-      <div>
-        <a class="clipbtn menubtn" @click="save()">Save</a>
-      </div>
-    </div>
-    <div v-if="showpass" class="add keyfilepage addpage">
-      <a class="clipbtn menubtn" @click="this.showpass = false;this.passtype = ''">
-        <i class="fa fa-times" />
-      </a>
-      <div>
-        <p />
-        pass: <input class="input" v-model="keypass" />
-      </div>
-      <p>&nbsp;</p>
-      <div>
-        <a class="clipbtn menubtn" @click="setkeypass()">Set</a>
+      <div v-if="showpass" class="add keyfilepage addpage">
+        <a class="clipbtn menubtn" @click="this.showpass = false;this.passtype = ''">
+          <i class="fa fa-times" />
+        </a>
+        <div>
+          <p />
+          pass: <input class="input" v-model="keypass" />
+        </div>
+        <p>&nbsp;</p>
+        <div>
+          <a class="clipbtn menubtn" @click="setkeypass()">Set</a>
+        </div>
       </div>
     </div>
   </div>
@@ -106,7 +133,9 @@ export default {
       keypass: '', // 密码项的加密密码
       showpass: false, // 是否显示密码输入框
       passtype: '', // 后续密码操作的类型，s/r
-      folds: []
+      folds: [],
+      isSync: false,
+      isDownload: false
     }
   },
   created: function () {
@@ -157,6 +186,7 @@ export default {
       this.lines = e
       this.makefoldorder()
     },
+    // 组织各折叠项和后面跟随项的关系
     makefoldorder() {
       var f = 0
       this.folds = []
@@ -238,6 +268,11 @@ export default {
       this.i = 0
     },
     saveKeyFile() {
+      var savedata = this.formdata()
+      this.$ipc.send('setkeyfile', savedata)
+      this.makefoldorder()
+    },
+    formdata() {
       var savedata = JSON.parse(JSON.stringify(this.lines))
       for (var i = 0; i < savedata.length; i++) {
         delete savedata[i].isfuncbtn
@@ -245,8 +280,7 @@ export default {
         delete savedata[i].foldto
         delete savedata[i].ismoveto
       }
-      this.$ipc.send('setkeyfile', savedata)
-      this.makefoldorder()
+      return savedata
     },
     saved() {
       this.$bus.emit('popupcheck')
@@ -316,9 +350,7 @@ export default {
     // 自动从后端服务器拿加密密码
     readkeypassRemote() {
       req.post(this.$store.state.conf, 'keygetbyname', {name: 'keypass'}).then((res) => {
-        if (!res.status) {
-          return
-        }
+        // if (!res.status) return
         if (res.data.val === '') {
           this.showpass = true
         } else {
@@ -336,18 +368,36 @@ export default {
       for (var i = 0; i < this.folds.length; i++) {
         this.folds[i] = false
       }
+    },
+    // 同步文件到后台
+    synckeyfile() {
+      this.isSync = false
+      var data = JSON.stringify(this.formdata())
+      req.post(this.$store.state.conf, 'setkeyfile', {content: data}).then((res) => {
+        if (res.data) {
+          this.$bus.emit('popupcheck')
+        }
+      }).catch((e) => {
+        this.$bus.emit('popuperror')
+      })
+    },
+    downloadkeyfile() {
+      this.isDownload = false
+      req.get(this.$store.state.conf, 'readkeyfile').then((res) => {
+        this.lines = JSON.parse(res.data)
+        this.saveKeyFile()
+      })
     }
   }
 }
 </script>
 <style lang="stylus" scoped>
 .keyfilepage
-  padding 1rem
   position fixed
   top 50%
   left 50%
   transform translate(-50%, -50%)
-  overflow-y auto
+  padding-left 1rem
   background-color black
   border solid 1px red
 .addpage
@@ -381,6 +431,17 @@ export default {
   display none
 .bold
   font-weight bold
+.box
+  position relative
+  height 100%
+  overflow scroll
+.btns
+  z-index 2
+  position absolute
+  right 0
+  padding 1rem
+.colbtn
+  float none !important
 </style>
 <style lang="stylus" src='../../css/cyber.styl' scoped>
 </style>

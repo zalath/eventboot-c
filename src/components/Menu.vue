@@ -11,11 +11,11 @@
       <i class="fa fa-square-o"/>
       <i class="fa fa-caret-left"/>
     </div>
-    <div class="clipbtn" @click="boot()">
+    <div class="clipbtn" @click="boot()" title="启动配置的所有boot/boot up all boots in conf">
       <i class="fa fa-angle-up"/>
       <i class="fa fa-chevron-up"/>
     </div>
-    <div class="clipbtn" @click="shut()">
+    <div class="clipbtn" @click="shut()" title="关闭所有用户进程/kill all apps">
       <i class="fa fa-times"/>
       <i class="fa fa-times"/>
     </div>
