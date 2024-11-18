@@ -43,3 +43,6 @@ click to copy
 for password, it has a encription logic you can set the password manually once a usetime 
 or 
 set it to the go's server for automatically fetch
+
+npm v9.7.2
+node v22

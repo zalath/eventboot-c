@@ -3,7 +3,9 @@
     <div class='clipbtn' @click='copy()' @contextmenu="setapi()">
     {{ipval}}
     </div>
-    <input ref="inputCopy" value="for copy" style="opacity:0;position:absolute" />
+    <div class="btn clipbtn" @click="toggleknote()">
+      <i class="fa fa-book"></i>
+    </div>
   </div>
 </template>
 
@@ -21,16 +23,16 @@ export default {
   },
   methods: {
     copy() {
-      const input = this.$refs.inputCopy
-      input.value = this.ipval
-      input.select()
-      document.execCommand('copy')
+      navigator.clipboard.writeText(this.ipval);
     },
     setapi() {
       this.$bus.emit('showsetapi')
     },
     resetipval() {
       this.ipval = this.$store.state.conf.conf.api
+    },
+    toggleknote() {
+      this.$bus.emit('showknote')
     }
   }
 }

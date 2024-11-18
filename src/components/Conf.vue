@@ -85,6 +85,7 @@
 </template>
 
 <script>
+import move from '../js/move'
 export default {
   name: 'Conf',
   components: {
@@ -124,7 +125,7 @@ export default {
         var elv = el
         var ev = binding.instance;
         el = el.parentNode.parentNode.parentNode.parentNode;
-        ev.draging(el, ev, e, binding)
+        move.draging(el, ev, e, binding)
         el = elv
       }
     },
@@ -133,7 +134,7 @@ export default {
         var elv = el
         var ev = binding.instance;
         el = el.parentNode.parentNode;
-        ev.draging(el, ev, e, binding)
+        move.draging(el, ev, e, binding)
         el = elv
       }
     },
@@ -159,26 +160,6 @@ export default {
     }
   },
   methods: {
-    draging(el, ev, e, binding) {
-      var disx = e.pageX - el.offsetLeft;
-      var disy = e.pageY - el.offsetTop;
-      el.style.left = e.pageX - disx - 30 + 'px'
-      el.style.top = e.pageY - disy + 'px'
-      el.style.position = 'absolute'
-      el.style.zIndex = '10'
-      el.style.display = 'block !important'
-      ev.movi = binding.value
-      ev.movis = true
-      document.onmousemove = function (e) {
-        el.style.left = e.pageX - disx - 30 + 'px'
-        el.style.top = e.pageY - disy + 'px'
-      }
-      document.onmouseup = function() {
-        document.onmousemove = document.onmouseup = null
-        el.style = ''
-        ev.movis = false
-      }
-    },
     initstarter(e) {
       if (e !== null) {
         this.config = e
@@ -234,13 +215,7 @@ export default {
       this.config.starter.splice(i, 0, '')
     },
     move() {
-      if (this.movi < this.movto) {
-        this.movto -= 1
-      }
-      var c = JSON.parse(JSON.stringify(this.config.starter[this.movi]))
-      this.config.starter.splice(this.movi, 1)
-      this.config.starter.splice(this.movto, 0, c)
-      this.movis = false
+      move.move(this.movi, this.movto, this.config.starter, this.movis)
     }
   }
 }

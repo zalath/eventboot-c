@@ -110,6 +110,7 @@
 import btns from './btns.vue'
 import encpt from '../../js/encpt'
 import req from '../../js/req'
+import move from '../../js/move'
 export default {
   components: {
     btns
@@ -155,7 +156,7 @@ export default {
         var elv = el
         var ev = binding.instance;
         el = el.parentNode;
-        ev.draging(el, ev, e, binding)
+        move.draging(el, ev, e, binding)
         el = elv
       }
     },
@@ -236,8 +237,8 @@ export default {
     },
     save() {
       if ((this.editnode.type === 'pwd' && this.newnode.type === 'pwd' && this.editnode.ct !== this.newnode.ct) ||
-          (this.editnode.type !== 'pwd' && this.newnode.type === 'pass') ||
-          (this.newnode.type === 'pwd' && this.showadd === true)
+          (this.editnode.type !== 'pwd' && this.newnode.type === 'pwd') ||
+          (this.newnode.type === 'pwd' && this.showedit === false)
       ) {
         var keypass = this.readkeypass('s')
         if (!keypass) return
@@ -285,34 +286,8 @@ export default {
     saved() {
       this.$bus.emit('popupcheck')
     },
-    draging(el, ev, e, binding) {
-      var disx = e.pageX - el.offsetLeft;
-      var disy = e.pageY - el.offsetTop;
-      el.style.left = e.pageX - disx - 30 + 'px'
-      el.style.top = e.pageY - disy + 'px'
-      el.style.position = 'absolute'
-      el.style.zIndex = '10'
-      el.style.display = 'block !important'
-      ev.movi = binding.value
-      ev.movis = true
-      document.onmousemove = function (e) {
-        el.style.left = e.pageX - disx - 30 + 'px'
-        el.style.top = e.pageY - disy + 'px'
-      }
-      document.onmouseup = function () {
-        document.onmousemove = document.onmouseup = null
-        el.style = ''
-        ev.movis = false
-      }
-    },
     move() {
-      if (this.movi < this.movto) {
-        this.movto -= 1
-      }
-      var c = JSON.parse(JSON.stringify(this.lines[this.movi]))
-      this.lines.splice(this.movi, 1)
-      this.lines.splice(this.movto, 0, c)
-      this.movis = false
+      move.move(this.movi, this.movto, this.lines, this.movis)
       this.saveKeyFile()
     },
     copypwd(val) {

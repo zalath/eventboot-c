@@ -9,6 +9,7 @@
       <Tool />
       <Conf v-show="isconf" />
       <keyfile v-show="iskeyfile"/>
+      <knote />
     </div>
     <Setapi />
     <popcheck />
@@ -25,6 +26,7 @@ import Note from './note/Note';
 import Setapi from './Dataapi';
 import Menu from './Menu';
 import keyfile from './keyfile/Keyfile';
+import knote from './knote';
 // import Watcher from './Watcher'
 export default {
   components: {
@@ -37,7 +39,8 @@ export default {
     popcheck,
     Note,
     Setapi,
-    keyfile
+    keyfile,
+    knote
     // ,Watcher
   },
   name: 'Box',

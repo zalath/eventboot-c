@@ -68,6 +68,7 @@ export default {
   transform translate(-50%,-50%)
   padding 40px
   border solid 1px red
+  z-index 20
 .checktxt
   font-size 50px
 </style>

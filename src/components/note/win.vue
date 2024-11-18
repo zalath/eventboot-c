@@ -41,7 +41,7 @@ export default {
       req.post(this.$store.state.conf, 'nel', { id: 0 }).then((res) => {
         that.lin = res.data;
         req.post(this.$store.state.conf, 'nlist', { id: 0 }).then((res) => {
-          console.log(res)
+          // console.log(res)
           that.lin.Child = res.data
           this.dataready = true
           console.log('note reloaded')
