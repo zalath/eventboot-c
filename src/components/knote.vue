@@ -15,19 +15,22 @@
       </div>
     </div>
     <div class="noteLines">
-      <div class="btn clipbtn clipinput w90 noteLine" v-for="(l, ind) in this.notes" :key="ind" @mouseenter="lines[ind] = {}, lines[ind].btn=true" @mouseleave="lines[ind].btn=false">
+      <div class="btn clipbtn clipinput w90 noteLine" v-for="(l, ind) in this.notes" :key="ind" @mouseenter="lines[ind] = {}, lines[ind].btn=true" @mouseleave="lines[ind].btn=false" v-dragto="ind">
         <!-- <i>{{ ind }}</i>&emsp; -->
         <!-- <textarea :rows=(l.txt.match(/\n/g)?(l.txt.match(/\n/g)).length+2:2) :title="l.txt" class="txt noteContent" v-model="l.txt" @change="setnotes()" /> -->
         <textarea :rows=(l.txt.match(/\n/g)?(l.txt.match(/\n/g)).length+2:2) class="txt noteContent" v-model="l.txt" @change="setnotes()" />
         <div class="linebtns">
-          <div v-if="lines[ind] && lines[ind].btn" class="btn clipbtn" @click="del(ind)">
+          <div v-if="lines[ind] && lines[ind].btn && this.movis===false" class="btn clipbtn" @click="del(ind)">
             <i class="fa fa-times"></i>
           </div>
-          <div v-if="lines[ind] && lines[ind].btn" class="btn clipbtn" @click="copy(l.txt)">
+          <div v-if="lines[ind] && lines[ind].btn && this.movis===false" class="btn clipbtn" @click="copy(l.txt)">
             <i class="fa fa-copy"></i>
           </div>
-          <div v-if="lines[ind] && lines[ind].btn" class="btn clipbtn" @click="move(ind)">
+          <div v-if="lines[ind] && lines[ind].btn && this.movis===false" class="btn clipbtn" v-drag="ind">
             <i class="fa fa-reorder"></i>
+          </div>
+          <div v-if="lines[ind] && lines[ind].btn && this.movis===true" class="btn clipbtn">
+            <i class="fa fa-arrow-left"></i>
           </div>
         </div>
       </div>
@@ -41,6 +44,7 @@
  * add框，改为textarea
  */
 import req from '../js/req'
+import move from '../js/move'
 // api接口ip设置面板
 export default {
   name: 'setapi',
@@ -48,17 +52,55 @@ export default {
   },
   data: () => {
     return {
-      showknote: true,
+      showknote: false,
       notes: [],
       newtxt: '',
-      lines: []
+      lines: [],
+      movi: 0,
+      movto: 0,
+      movis: false
     }
   },
   created() {
     this.getnotes()
     this.$bus.on('showknote', this.toggleshowknote)
   },
+  directives: {
+    drag(el, binding) {
+      el.onmousedown = function (e) {
+        var elv = el
+        var ev = binding.instance;
+        el = el.parentNode.parentNode;
+        move.draging(el, ev, e, binding, 70)
+        el = elv
+      }
+    },
+    dragto(el, binding) {
+      el.onmouseenter = function (e) {
+        if (binding.instance.movis) {
+          binding.instance.lines[binding.value].ismoveto = true
+          el.onmouseleave = function () {
+            if (binding.instance.movis) {
+              el.onmouseleave = el.onmouseup = null
+              binding.instance.lines[binding.value].ismoveto = false
+            }
+          }
+          el.onmouseup = function () {
+            if (binding.instance.movis) {
+              binding.instance.movto = binding.value
+              binding.instance.lines[binding.value].ismoveto = false
+              binding.instance.move()
+            }
+          }
+        }
+      }
+    }
+  },
   methods: {
+    move() {
+      move.move(this.movi, this.movto, this.notes, this.movis)
+      this.setnotes()
+    },
     add() {
       this.notes.splice(0, 0, {txt: this.newtxt})
       this.setnotes()
