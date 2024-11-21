@@ -1,13 +1,13 @@
 <template>
   <div class='space' v-if="showknote">
     <div class="btns">
-      <div class="btn clipbtn clipinput">
-        <input class="txt newtxt" v-model="newtxt"/>
+      <div class="btn clipbtn clipinput pad01">
+        <textarea class="txt newtxt" v-model="newtxt" />
       </div>
-      <div class="btn clipbtn" @click="add()">
+      <div class="btn clipbtn" title="添加" @click="add()">
         <i class="fa fa-plus"></i>
       </div>
-      <div class="btn clipbtn" @click="setnotes()">
+      <div class="btn clipbtn" title="上传" @click="setnotes()">
         <i class="fa fa-check"></i>
       </div>
       <div class="btn clipbtn" @click="this.showknote = false">
@@ -170,6 +170,7 @@ export default {
   width 100%
 .newtxt
   width 5rem
+  height 1rem
 .clipinput
   position relative
   &:hover
@@ -182,6 +183,8 @@ export default {
   position absolute
   right -.4rem
   background-color black
+.pad01
+  padding .1rem !important
 </style>
 <style lang="stylus" src='../css/cyber.styl' scoped>
 </style>
