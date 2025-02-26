@@ -47,7 +47,7 @@ init.initipc = function (win, ipc, shell, app) {
   ipc.on('setconfig', function(event, e) {
     conf.setconfig(win, e);
   })
-  ipc.on('getkeyfile',function(event){
+  ipc.on('getkeyfile', function(event) {
     if (global.keyfile) {
       win.webContents.send('keyfileloaded', global.keyfile)
     } else {

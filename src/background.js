@@ -1,8 +1,8 @@
 'use strict'
 
-import { app, protocol, BrowserWindow, ipcMain, shell, globalShortcut } from 'electron'
-import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
+import { app, BrowserWindow, globalShortcut, ipcMain, protocol, shell } from 'electron'
 // import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
+import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 // import { globalShortcut } from 'electron/main'
 const isDevelopment = process.env.NODE_ENV !== 'production'
 const ipc = ipcMain
@@ -33,8 +33,10 @@ async function createWindow () {
   globalShortcut.register('Alt+Ctrl+D', () => { win.show() })
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
-    await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL)
-    if (!process.env.IS_TEST) win.webContents.openDevTools()
+    setTimeout(() => {
+      win.loadURL(process.env.WEBPACK_DEV_SERVER_URL)
+      if (!process.env.IS_TEST) win.webContents.openDevTools()
+    }, 5000)
   } else {
     createProtocol('app')
     // Load the index.html when not in development

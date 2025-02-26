@@ -4,7 +4,7 @@
       <div class="menubtn clipbtn" @click="close()">
         <i class="fa fa-times"></i>
       </div>
-      <div class="menubtn clipbtn" @click="foldall()">
+      <div class="menubtn clipbtn" title="fold all" @click="foldall()">
         <i class="fa fa-angle-left bold"></i>
         <i class="fa fa-angle-left bold"></i>
       </div>
@@ -38,7 +38,7 @@
       <div class='keyfileline' v-for='(l, ind) in this.lines' :key='ind' @mouseenter="showFuncBtn(ind)"
         @mouseleave="hideFuncBtn(ind)" v-dragto="ind">
         <span :class="l.foldto !== undefined? folds[l.foldto] === false? 'foldclose':'foldopen':''">
-          <span v-if="l.type == 'fold'">
+          <span v-if="l.type == 'fold'" class="foldline">
             <a @click="copy(l.name)">
               --&emsp;&emsp;{{ l.name }}
             </a>
@@ -65,7 +65,7 @@
           </a>
         </span>
       </div>
-      <a @click="showadd = true">
+      <a @click="openAdd(lines.length+1)">
         <i class="fa fa-plus"></i>
       </a>
       <div v-if="showadd" class="add keyfilepage addpage">
@@ -107,10 +107,10 @@
   </div>
 </template>
 <script>
-import btns from './btns.vue'
-import encpt from '../../js/encpt'
-import req from '../../js/req'
-import move from '../../js/move'
+import encpt from '../../js/encpt';
+import move from '../../js/move';
+import req from '../../js/req';
+import btns from './btns.vue';
 export default {
   components: {
     btns
@@ -400,6 +400,8 @@ export default {
   outline none
 .noselect
   user-select none
+.foldline
+  color #00d944
 .foldopen
   display block
 .foldclose
