@@ -16,7 +16,7 @@
           <div class="fullsize origin pa" :class="{txttop: !showTarget}" @click="toggleTarget(false)">
             <textarea placeholder="原文" v-model="originval" class="fullsize ov"/>
           </div>
-          <div class="fullsize target pa" :class="{txttop: showTarget}">
+          <div class="fullsize target pa" :class="{txttop: showTarget}" @click="toggleTarget(true)">
             <textarea placeholder="处理后" v-model="targetval" class="fullsize ov"/>
           </div>
         </div>
@@ -25,6 +25,9 @@
           <i class="fa fa-caret-down"/>
         </div>
         <div>
+          <div class="clipbtn fr" @click="opendevtool()">
+            <i class="fa fa-code"/>
+          </div>
           <div class="clipbtn fr" @click="deQrcode()">
             <i class="fa fa-circle"/>
             <input type="file" style="display:none" ref="qrde" @change="deQrcodeFile($event)">
@@ -104,8 +107,8 @@
 
 <script>
 import md5 from 'js-md5'
-import QRCode from 'qrcodejs2'
 import jsQR from 'jsqr'
+import QRCode from 'qrcodejs2'
 const Ip = require('ip')
 const base64 = require('js-base64').Base64
 export default {
@@ -135,6 +138,9 @@ export default {
     this.settime()
   },
   methods: {
+    opendevtool: function() {
+      this.$ipc.send('opendevtool', '');
+    },
     genclist: function() {
       this.$ipc.send('genclist')
     },
@@ -309,22 +315,22 @@ textarea
     content ""
     background lv
     position absolute
-    left -5px
-    width 5px
+    left -10px
+    width 10px
     top 0
-    height 1.2rem
+    height 2.5rem
     clip-path polygon(0 0,100% 0,100% 100%,0 70%)
 
 .origin
-  top -5px
+  top -7px
   &::before
     cursor pointer
     content ""
     background red
     position absolute
-    top -5px
-    height 5px
-    width 1.5rem
+    top -10px
+    height 10px
+    width 2.5rem
     clip-path polygon(0 0,70% 0,100% 100%,0 100%)
 .largeTarget
   position fixed

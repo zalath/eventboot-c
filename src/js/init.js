@@ -15,6 +15,10 @@ class init {
 init.saveUrl = ''
 init.initipc = function (win, ipc, shell, app) {
   this.win = win
+  ipc.on('opendevtool', function (event, e) {
+    console.log('in opening dev tools')
+    win.webContents.openDevTools()
+  })
   ipc.on('bootenv', function (event, e) {
     init.bootApps()
   })

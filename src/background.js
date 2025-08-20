@@ -30,13 +30,17 @@ async function createWindow () {
   })
   win.maximize()
   init.initipc(win, ipc, shell, app)
-  globalShortcut.register('Alt+Ctrl+D', () => { win.show() })
+  globalShortcut.register('Alt+Ctrl+D', () => { console.log('in showing window');win.show() })
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
+
     setTimeout(() => {
+      console.log('dev server starting')
       win.loadURL(process.env.WEBPACK_DEV_SERVER_URL)
+      // win.webContents.toggleDevTools()
+      // console.log(win.webContents.isDevToolsOpened())
       if (!process.env.IS_TEST) win.webContents.openDevTools()
-    }, 5000)
+    }, 1000)
   } else {
     createProtocol('app')
     // Load the index.html when not in development
