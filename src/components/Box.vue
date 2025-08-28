@@ -10,6 +10,7 @@
       <Conf v-show="isconf" />
       <keyfile v-show="iskeyfile"/>
       <knote />
+      <Book />
     </div>
     <Setapi />
     <popcheck />
@@ -27,6 +28,7 @@ import Setapi from './Dataapi';
 import Menu from './Menu';
 import keyfile from './keyfile/Keyfile';
 import knote from './knote';
+import Book from './book/Book';
 // import Watcher from './Watcher'
 export default {
   components: {
@@ -40,7 +42,8 @@ export default {
     Note,
     Setapi,
     keyfile,
-    knote
+    knote,
+    Book
     // ,Watcher
   },
   name: 'Box',
