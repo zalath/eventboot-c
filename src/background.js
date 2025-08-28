@@ -25,7 +25,7 @@ async function createWindow () {
       // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
       nodeIntegration: process.env.ELECTRON_NODE_INTEGRATION,
       contextIsolation: !process.env.ELECTRON_NODE_INTEGRATION,
-      webSecurity: false
+      webSecurity: false,
     }
   })
   win.maximize()
@@ -35,11 +35,10 @@ async function createWindow () {
     // Load the url of the dev server if in development mode
 
     setTimeout(() => {
-      console.log('dev server starting')
       win.loadURL(process.env.WEBPACK_DEV_SERVER_URL)
       // win.webContents.toggleDevTools()
       // console.log(win.webContents.isDevToolsOpened())
-      if (!process.env.IS_TEST) win.webContents.openDevTools()
+      if (!process.env.IS_TEST)win.webContents.openDevTools()
     }, 1000)
   } else {
     createProtocol('app')

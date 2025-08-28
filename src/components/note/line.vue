@@ -8,7 +8,7 @@
       </a>
       <template v-if="lin.tikc.length > 0">
         <a v-for="(t) in tlin.tikc" :key="t.tik">
-          <a :class="'fa tikname'+t.tik">{{t.c}}</a>
+          <i :class="'fa tikname'+t.tik">{{t.c}}</i>
         </a>
       </template>
       <template v-if='isbtn'>
