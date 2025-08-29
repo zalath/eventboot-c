@@ -52,7 +52,7 @@ export default {
       })
     },
     getRelationList(id) {
-      req.post(this.$store.state.conf, 'bookrelations', {id: id}).then(res => {
+      req.post(this.$store.state.conf, 'bookparts', {id: id}).then(res => {
         this.relationlist = res.data
       })
     }
