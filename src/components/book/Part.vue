@@ -47,7 +47,7 @@
 </template>
 
 <script>
-import req from '../../api/req';
+import req from '../../js/req';
 export default {
   name: 'Part',
   props: {
@@ -75,10 +75,10 @@ export default {
     },
     addRelation() {
       // p1/p2 based on choosed relation side
-      let p1 = this.part.id
-      let p2 = this.choosedpartid
-      let relationid = this.choosedrelation.id
-      req.post(this.$store.state.api + '/book/makerelation', {p1:p1,p2:p2,relationid:relationid}).then(res => {
+      const p1 = this.part.id
+      const p2 = this.choosedpartid
+      const relationid = this.choosedrelation.id
+      req.post(this.$store.state.api + '/book/makerelation', {p1: p1, p2: p2, relationid: relationid}).then(res => {
         // add choosed part to this.part1
       })
     },

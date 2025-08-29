@@ -1,15 +1,16 @@
 <template>
-  <div>
+  <div class="bookbtn" @mouseenter="isshowbtns=true" @mouseleave="isshowbtns=false">
     <div class="clipbtn" @click="openBook()" style="text-align: center;">
       {{ book.name }}
     </div>
-    <div>
+    <div class="clipbtn" v-show="isshowbtns" title="关系" @click="isshowrelations=!isshowrelations">
+      <i class="fa fa-link"></i>
       <!-- edit relationType -->
     </div>
     <div v-show="isshow">
       <Part v-for="(part,i) in partlist" :key="i" :part="part"></Part>
     </div>
-    <Bookrelation v-show="isshow"></Bookrelation>
+    <Bookrelation v-show="isshowrelations && isshow" :book="book"></Bookrelation>
   </div>
 </template>
 
@@ -28,7 +29,8 @@ export default {
       partlist: [],
       istoggle: false,
       isshow: true,
-      relationlist: []
+      isshowbtns: false,
+      isshowrelations: false
     }
   },
   created() {
@@ -39,7 +41,8 @@ export default {
     openBook() {
       if (!this.istoggle) {
         this.istoggle = true;
-        this.openOne(this.book);
+        var res = this.openOne(this.book);
+        this.$store.commit('setParts', {id: this.book.id, relations: res})
         this.getRelationList(this.book.id);
       } else {
         this.isshow = !this.isshow;
@@ -49,11 +52,12 @@ export default {
       req.post(this.$store.state.conf, 'bookparts', {id: part.id}).then(res => {
         part.parts = res.data
         this.partlist.push(part)
+        return res.data
       })
     },
     getRelationList(id) {
       req.post(this.$store.state.conf, 'bookparts', {id: id}).then(res => {
-        this.relationlist = res.data
+        this.$store.commit('setBookRelation', {id: this.book.id, relations: res.data})
       })
     }
   },
@@ -66,6 +70,9 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
+.bookbtn
+  float left
+  width 50vw
 
 </style>
 <style lang="stylus" src='../../css/cyber.styl' scoped>

@@ -1,6 +1,9 @@
 <template>
   <div class="bookbox">
-    <bookdetail class="booklist" v-show="isshowbook"></bookdetail>
+    <div v-for="(v,i) in this.booklist" :key="i">
+      <partlist :book="v"></partlist>
+      <div class="divider"></div>
+    </div>
     <a  class="clipbtn" @click="isshowbook=!isshowbook">
       <i class="fa fa-book"></i>
     </a>
@@ -8,20 +11,30 @@
 </template>
 
 <script>
-import bookdetail from './Bookdetail.vue'
+import req from '../../js/req'
+import partlist from './Partlist.vue'
 export default {
   name: 'Book',
   components: {
-    bookdetail
+    partlist
   },
   data: function() {
     return {
-      isshowbook: true
+      isshowbook: true,
+      booklist: []
+
     }
   },
   created() {
+    this.getbook()
   },
   methods: {
+    getbook() {
+      console.log('in getbook')
+      req.get(this.$store.state.conf, 'booklist', '').then((res) => {
+        this.booklist = res.data
+      })
+    }
   },
   mounted() {
     this.isshowbook = true
