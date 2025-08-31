@@ -10,7 +10,7 @@
     <div v-show="isshow">
       <Part v-for="(part,i) in partlist" :key="i" :part="part"></Part>
     </div>
-    <Bookrelation v-show="isshowrelations && isshow" :book="book"></Bookrelation>
+    <Bookrelation v-show="isshowrelations" :book="book"></Bookrelation>
   </div>
 </template>
 
@@ -41,9 +41,9 @@ export default {
     openBook() {
       if (!this.istoggle) {
         this.istoggle = true;
-        var res = this.openOne(this.book);
-        this.$store.commit('setParts', {id: this.book.id, relations: res})
-        this.getRelationList(this.book.id);
+        this.openOne(this.book);
+        // 获取该书的管理列表
+        this.$store.commit('setBookRelationType', {id: this.book.id})
       } else {
         this.isshow = !this.isshow;
       }
@@ -52,12 +52,8 @@ export default {
       req.post(this.$store.state.conf, 'bookparts', {id: part.id}).then(res => {
         part.parts = res.data
         this.partlist.push(part)
+        this.$store.commit('setParts', {id: this.book.id, parts: res.data})
         return res.data
-      })
-    },
-    getRelationList(id) {
-      req.post(this.$store.state.conf, 'bookparts', {id: id}).then(res => {
-        this.$store.commit('setBookRelation', {id: this.book.id, relations: res.data})
       })
     }
   },

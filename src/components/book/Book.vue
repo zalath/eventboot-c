@@ -47,6 +47,9 @@ export default {
   position fixed
   bottom 1rem
   left 1rem
+.divider
+  height 1px
+  margin 3rem 0
 </style>
 <style lang="stylus" src='../../css/cyber.styl' scoped>
 </style>
