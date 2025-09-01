@@ -8,16 +8,21 @@
       <!-- edit relationType -->
     </div>
     <div v-show="isshow">
-      <Part v-for="(part,i) in partlist" :key="i" :part="part"></Part>
+      <Part :partid="book.id" :bookid="book.id"></Part>
+      <Part v-for="(partid,i) in partlist" :key="i" :partid="partid" :bookid="bookid" @openOne="openOne" ></Part>
     </div>
     <Bookrelation v-show="isshowrelations" :book="book"></Bookrelation>
+    <Partedit :book="book"></Partedit>
+    <Relationedit :book="book"></Relationedit>
   </div>
 </template>
 
 <script>
-import req from '../../js/req';
-import Bookrelation from './Bookrelation.vue';
-import Part from './Part.vue';
+import { mapState } from 'vuex/dist/vuex.cjs.js'
+import Bookrelation from './Bookrelation.vue'
+import Part from './Part.vue'
+import Partedit from './Partedit.vue'
+import Relationedit from './Relationedit.vue'
 
 export default {
   name: 'Partlist',
@@ -41,27 +46,28 @@ export default {
     openBook() {
       if (!this.istoggle) {
         this.istoggle = true;
-        this.openOne(this.book);
-        // 获取该书的管理列表
-        this.$store.commit('setBookRelationType', {id: this.book.id})
+        // 获取该书的关系列表
+        this.$store.commit('initrelationlist', {id: this.book.id})
+        this.$store.commit('initParts', {book: this.book})
+        this.isshow = !this.isshow;
       } else {
         this.isshow = !this.isshow;
       }
     },
-    openOne(part) {
-      req.post(this.$store.state.conf, 'bookparts', {id: part.id}).then(res => {
-        part.parts = res.data
-        this.partlist.push(part)
-        this.$store.commit('setParts', {id: this.book.id, parts: res.data})
-        return res.data
-      })
+    openOne(res) {
+      this.partlist.push(res);
     }
   },
   components: {
     Part,
-    Bookrelation
-
-  }
+    Bookrelation,
+    Partedit,
+    Relationedit
+  },
+  computed: mapState({
+    parts: state => state.parts[this.book.id] || [],
+    relationlist: state => state.relationlist[this.book.id] || []
+  })
 }
 </script>
 

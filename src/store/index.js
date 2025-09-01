@@ -9,8 +9,10 @@ export default createStore({
     pathReady: 0,
     keypass: '',
 
-    bookrelationType: [],
-    parts: []
+    relationlist: [],
+    parts: [],
+    editingpart: {},
+    editingrelation: {}
   },
   mutations: {
     setConf(st, val) {
@@ -28,40 +30,72 @@ export default createStore({
     setKeypass(st, val) {
       st.keypass = val
     },
-
     // 初始化书籍关系
-    setBookRelationType(state, param) {
-      if (state.bookrelationType[param.id] === undefined) {
-        req.post(state.conf, 'bookgetrelationtype', { bookid: param.id }).then(
+    async initrelationlist(state, param) {
+      if (state.relationlist[param.id] === undefined) {
+        await req.post(state.conf, 'bookgetrelationtype', { bookid: param.id }).then(
           (res) => {
-            if (res !== 'mis') state.bookrelationType[param.id] = res.data
+            if (res !== 'mis') {
+              var relations = {}
+              res.forEach(r => {
+                relations[r.id] = r
+              })
+              state.relationlist[param.id] = relations
+            }
           }
         )
       }
     },
+    // 初始化书的部分
+    async initParts(state, param) {
+      if (state.parts[param.id] === undefined) {
+        await req.post(state.conf, 'bookparts', { id: param.book.id }).then(
+          (res) => {
+            if (res !== 'mis') {
+              var parts = {}
+              res.forEach(p => {
+                parts[p.id] = p
+              })
+              parts[param.book.id] = param.book
+              state.parts[param.id] = parts
+            }
+          }
+        )
+      }
+    },
+    // 新创建的part增加进队列
+    addParts(state, param) {
+
+      state.parts[param.id][param.partid] = param.part
+    },
+
+    // 去编辑新的节点
+    toEditPart(state, param) {
+      state.editingpart[param.bookid] = param
+    },
+    // 去编辑新的关系
+    toEditRelation(state, param) {
+      state.editingrelation[param.bookid] = param
+    },
+
+    // 新创建的关系增加进队列
+    addrelation(state, param) {
+      state.parts[param.id][param.partid].relations.push(param.relation)
+    },
+    // 初始化某个节点的relation列表
+    initPartRelation(state, param) {
+      state.parts[param.id][param.partid].relations = param.relations
+    },
     // 添加新的关系到指定书籍中
     addRelationType(state, param) {
-      state.bookrelationType[param.id].push(param.relation)
+      state.relationlist[param.id].push(param.relation)
     },
     deleteRelationType(state, param) {
       // TODO 查找param.relationId对应的index，然后删除
       // 暂时用这个笨办法，后续优化
-      const index = state.bookrelationType[param.id].findIndex(item => item.id === param.relationId)
-      state.bookrelationType[param.id].splice(index, 1)
-    },
-    // 初始化书的部分
-    setParts(state, param) {
-      var parts = {}
-      param.parts.forEach(p => {
-        parts[p.id] = p
-      });
-      state.parts[param.id] = parts
-    },
-    // 新创建的part增加进队列
-    addParts(state, param) {
-      state.parts[param.id][param.partid] = param.part
+      const index = state.relationlist[param.id].findIndex(item => item.id === param.relationId)
+      state.relationlist[param.id].splice(index, 1)
     }
-
   },
   getters: {
   },

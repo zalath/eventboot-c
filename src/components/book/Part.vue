@@ -2,92 +2,107 @@
   <div class="part">
     <div>{{ part.name }}</div>
     <div>
-      <!-- info -->
       {{ part.age }}
-      <!-- desc -->
       {{ part.desc }}
     </div>
     <div class="divider"></div>
     <div>
-      <!-- relations type 1 -->
-      <div v-for="(p1,i) in part1" :key="i" @click="openPart(p1)">
-        {{ p1.name }}
+      <div v-for="(r1,i) in relation1" :key="i" @click="openPart(p1)">
+        {{ r1.p1 === partid ?parts[r1.p2].name:parts[r1.p1].name }}
+        :{{ r1.p1 === partid ?relationlist[r1.relationid].revname:relationlist[r1.relationid].name }}
+        <!-- 删除 -->
       </div>
       <div>
-        <i class="fa fa-plus" @click="toAddRelation()"></i>
+        <div @click="toEditRelation()">
+          <i class="fa fa-plus"></i>
+          <i class="fa fa-link"></i>
+        </div>
+        <div @click="toEditPart('new')">
+          <i class="fa fa-plus"></i>
+        </div>
       </div>
-      <!-- handle open new part window -->
     </div>
     <div class="divider"></div>
     <div>
-      <!-- relations type 2 -->
-      <div v-for="(p2,j) in part2" :key="j">
+      <div v-for="(r2,j) in relation2" :key="j">
         {{ p2.name }}
+        <!-- 删除 -->
       </div>
-      <!-- handle open new edit/add window -->
-      <div>
+      <div class="clipbtn" @click="openEdit('new')">
         <i class="fa fa-plus"></i>
       </div>
     </div>
     <div class="divider"></div>
     <div>
-      <!-- window add relation 1-->
-    </div>
-
-    <div>
-      <!-- window edit/add relation type 2 -->
-      <!-- handle save cancel -->
-    </div>
-
-    <div>
-      <!-- window handle btns -->
-      <!-- delete -->
+      <!-- delete this part-->
     </div>
   </div>
 </template>
 
 <script>
+import { mapState } from 'vuex/dist/vuex.cjs.js';
 import req from '../../js/req';
 export default {
   name: 'Part',
   props: {
-    part: {}
+    partid: Number,
+    bookid: Number
   },
   data() {
     return {
-      part1: [],
-      part2: []
+      relation1: [],
+      relation2: []
     }
   },
   created() {
-    this.part1 = this.part.parts.filter(p => p.type === 1);
-    this.part1 = this.part.parts.filter(p => p.type === 2);
+    // 获得本模块儿的子项关系
+    req.post(this.$store.state.conf, 'bookparts', { id: this.partid }).then(
+      (res) => {
+        if (res !== 'mis') {
+          this.$state.emit('initPartRelation', {id: this.book.id, partid: this.partid, relations: res})
+          this.relation1 = this.part.relations.filter(p => p.type === 1);
+          this.relation2 = this.part.relations.filter(p => p.type === 2);
+        }
+      }
+    )
   },
   mounted() {
   },
   methods: {
-    openPart(part) {
-      this.$emit('openPart', part);
+    openPart(id) {
+      this.emit('openOne', id)
     },
-    toAddRelation() {
-      // read all relation types
-      // get all part1 of this book and list out
+    toEditRelation() {
+      // 为当前节点，绑定关系子节点
+      this.$store.emit('toEditRelation', {bookid: this.bookid, partid: this.partid})
     },
-    addRelation() {
-      // p1/p2 based on choosed relation side
-      const p1 = this.part.id
-      const p2 = this.choosedpartid
-      const relationid = this.choosedrelation.id
-      req.post(this.$store.state.api + '/book/makerelation', {p1: p1, p2: p2, relationid: relationid}).then(res => {
-        // add choosed part to this.part1
-      })
+    toEditPart(type) {
+      // 为当前节点，增加子节点
+      this.$store.emit('toEditPart', {bookid: this.bookid, partid: this.partid, type: type})
     },
-    openEdit() {},
-    saveEdit() {},
-    deletePart() {}
+    saveEdit() {
+      if (this.isShowAdd) {
+        this.editpart.p1 = this.part.id
+        this.editpart.relationid = this.choosedrelation.id
+        this.editpart.relationpos = this.choosedrelation.pos
+        req.post(this.$store.state.conf, 'booknewpart', this.editpart).then(res => {
+          this.isShowAdd = false
+          res.Relationname = this.choosedrelation.pos === 1 ? this.choosedrelation.name : this.choosedrelation.revname
+        })
+      } else {
+      }
+    },
+    deletePart() {
+      // 删除当前节点
+    }
   },
   components: {
-  }
+  },
+  computed: mapState({
+    part: state => state.parts[this.bookid][this.partid],
+    parts: state => state.parts[this.bookid],
+    relationlist: state => state.relationlist[this.part.id]
+  })
 }
 </script>
 <style lang="stylus" scoped>

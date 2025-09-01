@@ -2,7 +2,11 @@
   <div class="relationbox">
     <div>{{ book.name }}</div>
     <div>
-      <div v-for="(relation,i) in bookrelationType[book.id]" :key="i">{{ relation.Name }}</div>
+      <div v-for="(relation,i) in relationlist" :key="i">
+        {{ relation.Name }}
+        &emsp;
+        <button @click="deleteRelation(relation.id)">删除</button>
+      </div>
     </div>
     <div class="clipbtn" @click="isshowNewRelation=true">
       <i class="fa fa-plus"></i>
@@ -38,7 +42,7 @@ export default {
     }
   },
   created() {
-    this.$store.commit('setBookRelationType', {id: this.book.id})
+    this.$store.commit('initrelationlist', {id: this.book.id})
   },
   methods: {
     comfirmNewRelation() {
@@ -50,9 +54,8 @@ export default {
       }
       req.post(this.$store.state.conf, 'bookcreaterelationtype', this.relation).then(
         res => {
-          console.log(res)
           if (res.data !== 'mis') {
-            this.$store.commit('addRelation', {id: this.book.id, relation: res.data})
+            this.$store.commit('addRelationType', {id: this.book.id, relation: res.data})
             this.$bus.emit('popupcheck')
           } else {
             this.$bus.emit('popuperror', '添加失败')
@@ -65,7 +68,7 @@ export default {
       req.post(this.$store.state.conf, 'bookdeleterelation', {id: id}).then(
         res => {
           if (res === 'done') {
-            this.$store.emit('deleteRelation', {id: this.book.id, relationId: id})
+            this.$store.emit('deleteRelationType', {id: this.book.id, relationId: id})
             this.$bus.emit('popupcheck')
           } else {
             this.$bus.emit('popuperror', '删除失败')
@@ -78,7 +81,7 @@ export default {
     }
   },
   computed: mapState({
-    bookrelationType: state => state.bookrelationType
+    relationlist: state => state.relationlist[this.book.id] || []
   })
 }
 </script>
