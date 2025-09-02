@@ -35,9 +35,10 @@ export default createStore({
       if (state.relationlist[param.id] === undefined) {
         await req.post(state.conf, 'bookgetrelationtype', { bookid: param.id }).then(
           (res) => {
+            if (res.data == null) return;
             if (res !== 'mis') {
               var relations = {}
-              res.forEach(r => {
+              res.data.forEach(r => {
                 relations[r.id] = r
               })
               state.relationlist[param.id] = relations
@@ -51,9 +52,10 @@ export default createStore({
       if (state.parts[param.id] === undefined) {
         await req.post(state.conf, 'bookparts', { id: param.book.id }).then(
           (res) => {
+            if (res.data == null) return;
             if (res !== 'mis') {
               var parts = {}
-              res.forEach(p => {
+              res.data.forEach(p => {
                 parts[p.id] = p
               })
               parts[param.book.id] = param.book
@@ -65,7 +67,6 @@ export default createStore({
     },
     // 新创建的part增加进队列
     addParts(state, param) {
-
       state.parts[param.id][param.partid] = param.part
     },
 

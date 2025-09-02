@@ -8,7 +8,6 @@
       <!-- edit relationType -->
     </div>
     <div v-show="isshow">
-      <Part :partid="book.id" :bookid="book.id"></Part>
       <Part v-for="(partid,i) in partlist" :key="i" :partid="partid" :bookid="bookid" @openOne="openOne" ></Part>
     </div>
     <Bookrelation v-show="isshowrelations" :book="book"></Bookrelation>
@@ -43,13 +42,14 @@ export default {
   mounted() {
   },
   methods: {
-    openBook() {
+    async openBook() {
       if (!this.istoggle) {
         this.istoggle = true;
         // 获取该书的关系列表
-        this.$store.commit('initrelationlist', {id: this.book.id})
-        this.$store.commit('initParts', {book: this.book})
+        await this.$store.commit('initrelationlist', {id: this.book.id})
+        await this.$store.commit('initParts', {book: this.book})
         this.isshow = !this.isshow;
+        this.partlist.push(this.book.id)
       } else {
         this.isshow = !this.isshow;
       }
@@ -65,8 +65,8 @@ export default {
     Relationedit
   },
   computed: mapState({
-    parts: state => state.parts[this.book.id] || [],
-    relationlist: state => state.relationlist[this.book.id] || []
+    parts: state => state.parts,
+    relationlist: state => state.relationlis
   })
 }
 </script>

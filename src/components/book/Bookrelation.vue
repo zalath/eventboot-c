@@ -38,7 +38,8 @@ export default {
   data() {
     return {
       isshowNewRelation: false,
-      relation: {}
+      relation: {},
+      relationlist: this.S_relationlist === undefined ? [] : this.S_relationlist[this.book.id] || []
     }
   },
   created() {
@@ -81,7 +82,7 @@ export default {
     }
   },
   computed: mapState({
-    relationlist: state => state.relationlist[this.book.id] || []
+    S_relationlist: state => state.relationlist
   })
 }
 </script>

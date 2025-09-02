@@ -1,5 +1,5 @@
-<tempalte>
-  <div class="partedit">
+<template>
+  <div class="partedit" v-show="isShowEdit">
     <div>pic:<input v-model="editpart.pic"/></div>
       <div>name:<input v-model="editpart.name"/></div>
       <div>age:<input v-model="editpart.age"/></div>
@@ -10,7 +10,7 @@
         <button @click="saveEdit">确定</button>
       </div>
   </div>
-</tempalte>
+</template>
 <script>
 import { mapState } from 'vuex/dist/vuex.cjs.js';
 export default {
@@ -20,9 +20,22 @@ export default {
   },
   data: function() {
     return {
-      editpart: {},
+      editpart: {
+        partid: '',
+        pic: '',
+        name: '',
+        age: 0,
+        desc: '',
+        type: 'new'
+      },
       isShowEdit: false
     }
+  },
+  created() {
+    // 注册事件监听，获取要编辑的partid，$store.state.parts更新editpart
+    this.$bus.on('editPart', (partid) => {
+      this.editpart = this.$store.state.parts[this.book.id][partid]
+    })
   },
   methods: {
     saveEdit() {
@@ -31,13 +44,10 @@ export default {
       }
     }
   },
-  mounted() {
-    this.editpart = this.parts[this.editingpart.partid]
-  },
   computed: mapState({
-    relationlist: state => state.relationlist[this.book.id] || [],
-    parts: state => state.parts[this.book.id] || [],
-    editingpart: state => state.editingpart[this.book.id] || []
+    relationlist: state => state.relationlist,
+    parts: state => state.parts,
+    editingpart: state => state.editingpart
   })
 }
 </script>

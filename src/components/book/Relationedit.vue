@@ -3,11 +3,11 @@
     <div>{{ editingrelation.name }}</div>
 
     <select v-model="choosedrelation">
-      <option v-for="r in relationlist" :key="r.id" :value="r.id">{{ r.name }}</option>
+      <option v-for="r in relationlist[book.id]" :key="r.id" :value="r.id">{{ r.name }}</option>
     </select>
 
     <select v-model="choosedp2">
-      <option v-for="p in parts" :key="p.id" :value="p.id">{{ p.name }}</option>
+      <option v-for="p in parts[book.id]" :key="p.id" :value="p.id">{{ p.name }}</option>
     </select>
 
   </div>
@@ -18,7 +18,9 @@ import { mapState } from 'vuex/dist/vuex.cjs.js';
 import req from '../../js/req.js';
 export default {
   name: 'Relationedit',
-  props: ['book'],
+  props: {
+    book: {}
+  },
   data() {
     return {
       isShow: false,
@@ -52,9 +54,9 @@ export default {
     }
   },
   computed: mapState({
-    relationlist: state => state.relationlist[this.book.id] || [],
-    parts: state => state.parts[this.book.id] || [],
-    editingrelation: state => state.editingrelation[this.book.id] || []
+    relationlist: state => state.relationlist,
+    parts: state => state.parts,
+    editingrelation: state => state.editingrelation
   })
 }
 </script>

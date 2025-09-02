@@ -51,11 +51,13 @@ export default {
   data() {
     return {
       relation1: [],
-      relation2: []
+      relation2: [],
+      part: {}
     }
   },
   created() {
     // 获得本模块儿的子项关系
+    this.part = this.parts[this.bookid][this.partid]
     req.post(this.$store.state.conf, 'bookparts', { id: this.partid }).then(
       (res) => {
         if (res !== 'mis') {
@@ -99,9 +101,8 @@ export default {
   components: {
   },
   computed: mapState({
-    part: state => state.parts[this.bookid][this.partid],
-    parts: state => state.parts[this.bookid],
-    relationlist: state => state.relationlist[this.part.id]
+    parts: state => state.parts,
+    relationlist: state => state.relationlist
   })
 }
 </script>
