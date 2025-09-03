@@ -13,11 +13,11 @@
         <!-- 删除 -->
       </div>
       <div>
-        <div @click="toEditRelation()">
+        <div class="clipbtn" @click="toEditRelation()">
           <i class="fa fa-plus"></i>
           <i class="fa fa-link"></i>
         </div>
-        <div @click="toEditPart('new')">
+        <div class="clipbtn" @click="toEditPart('new')">
           <i class="fa fa-plus"></i>
         </div>
       </div>
@@ -36,12 +36,16 @@
     <div>
       <!-- delete this part-->
     </div>
+    <Partedit v-if="isShowPartEdit" :type="editType" :partid="partid" :bookid="bookid"></Partedit>
+    <Relationedit v-if="isShowRelationEdit" :partid="partid" :bookid="bookid"></Relationedit>
   </div>
 </template>
 
 <script>
 import { mapState } from 'vuex/dist/vuex.cjs.js';
 import req from '../../js/req';
+import Partedit from './Partedit.vue'
+import Relationedit from './Relationedit.vue'
 export default {
   name: 'Part',
   props: {
@@ -52,7 +56,10 @@ export default {
     return {
       relation1: [],
       relation2: [],
-      part: {}
+      part: {},
+      editType: '',
+      isShowPartEdit: false,
+      isShowRelationEdit: false
     }
   },
   created() {
@@ -61,9 +68,9 @@ export default {
     req.post(this.$store.state.conf, 'bookparts', { id: this.partid }).then(
       (res) => {
         if (res !== 'mis') {
-          this.$state.emit('initPartRelation', {id: this.book.id, partid: this.partid, relations: res})
-          this.relation1 = this.part.relations.filter(p => p.type === 1);
-          this.relation2 = this.part.relations.filter(p => p.type === 2);
+          this.$store.commit('initPartRelation', {id: this.bookid, partid: this.partid, relations: res.data})
+          this.relation1 = res.data.filter(p => p.type === 1);
+          this.relation2 = res.data.filter(p => p.type === 2);
         }
       }
     )
@@ -76,11 +83,12 @@ export default {
     },
     toEditRelation() {
       // 为当前节点，绑定关系子节点
-      this.$store.emit('toEditRelation', {bookid: this.bookid, partid: this.partid})
+      this.isShowRelationEdit = true
     },
     toEditPart(type) {
       // 为当前节点，增加子节点
-      this.$store.emit('toEditPart', {bookid: this.bookid, partid: this.partid, type: type})
+      this.editType = type
+      this.isShowPartEdit = true
     },
     saveEdit() {
       if (this.isShowAdd) {
@@ -99,6 +107,8 @@ export default {
     }
   },
   components: {
+    Partedit,
+    Relationedit
   },
   computed: mapState({
     parts: state => state.parts,
@@ -118,6 +128,7 @@ export default {
   background-color black
   overflow-y scroll
 .divider
+  clear both
   height 1px
   width 90%
   background-color red

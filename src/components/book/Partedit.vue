@@ -16,7 +16,8 @@ import { mapState } from 'vuex/dist/vuex.cjs.js';
 export default {
   name: 'Partedit',
   props: {
-    book: {}
+    type: String,
+    bookid: {}
   },
   data: function() {
     return {
@@ -33,9 +34,6 @@ export default {
   },
   created() {
     // 注册事件监听，获取要编辑的partid，$store.state.parts更新editpart
-    this.$bus.on('editPart', (partid) => {
-      this.editpart = this.$store.state.parts[this.book.id][partid]
-    })
   },
   methods: {
     saveEdit() {
@@ -46,8 +44,7 @@ export default {
   },
   computed: mapState({
     relationlist: state => state.relationlist,
-    parts: state => state.parts,
-    editingpart: state => state.editingpart
+    parts: state => state.parts
   })
 }
 </script>

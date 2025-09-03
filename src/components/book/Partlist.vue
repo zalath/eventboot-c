@@ -1,5 +1,5 @@
 <template>
-  <div class="bookbtn" @mouseenter="isshowbtns=true" @mouseleave="isshowbtns=false">
+  <div class="bookbtn" @mouseenter="togglebtns(true)" @mouseleave="togglebtns(false)">
     <div class="clipbtn" @click="openBook()" style="text-align: center;">
       {{ book.name }}
     </div>
@@ -8,20 +8,18 @@
       <!-- edit relationType -->
     </div>
     <div v-show="isshow">
-      <Part v-for="(partid,i) in partlist" :key="i" :partid="partid" :bookid="bookid" @openOne="openOne" ></Part>
+      <Part v-for="(partid,i) in partlist" :key="i" :partid="partid" :bookid="book.id" @openOne="openOne(partid)" ></Part>
     </div>
-    <Bookrelation v-show="isshowrelations" :book="book"></Bookrelation>
-    <Partedit :book="book"></Partedit>
-    <Relationedit :book="book"></Relationedit>
+    <Bookrelation v-if="isshowrelations" :book="book"></Bookrelation>
   </div>
 </template>
 
 <script>
 import { mapState } from 'vuex/dist/vuex.cjs.js'
 import Bookrelation from './Bookrelation.vue'
+import req from '../../js/req.js'
 import Part from './Part.vue'
-import Partedit from './Partedit.vue'
-import Relationedit from './Relationedit.vue'
+import data from '../../js/data.js'
 
 export default {
   name: 'Partlist',
@@ -32,7 +30,7 @@ export default {
     return {
       partlist: [],
       istoggle: false,
-      isshow: true,
+      isshow: false,
       isshowbtns: false,
       isshowrelations: false
     }
@@ -42,27 +40,41 @@ export default {
   mounted() {
   },
   methods: {
+    togglebtns(isshow) {
+      this.isshowbtns = isshow;
+    },
     async openBook() {
       if (!this.istoggle) {
         this.istoggle = true;
-        // 获取该书的关系列表
-        await this.$store.commit('initrelationlist', {id: this.book.id})
-        await this.$store.commit('initParts', {book: this.book})
-        this.isshow = !this.isshow;
+        await this.loadrelation()
+        await this.loadbook()
         this.partlist.push(this.book.id)
+        this.isshow = !this.isshow;
       } else {
         this.isshow = !this.isshow;
       }
     },
-    openOne(res) {
-      this.partlist.push(res);
+    async loadrelation() {
+      await data.initBookRelation(this.$store, this.book.id)
+    },
+    async loadbook() {
+      const res = await req.post(this.$store.state.conf, 'bookparts', { id: this.book.id })
+      if (res !== 'mis' && res.data != null) {
+        var pt = {}
+        res.data.forEach(p => {
+          pt[p.id] = p
+        })
+        pt[this.book.id] = this.book
+        this.$store.commit('initParts', {id: this.book.id, partlist: pt})
+      }
+    },
+    openOne(partid) {
+      this.partlist.push(partid);
     }
   },
   components: {
     Part,
-    Bookrelation,
-    Partedit,
-    Relationedit
+    Bookrelation
   },
   computed: mapState({
     parts: state => state.parts,

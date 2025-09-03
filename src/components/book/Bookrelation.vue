@@ -3,8 +3,9 @@
     <div>{{ book.name }}</div>
     <div>
       <div v-for="(relation,i) in relationlist" :key="i">
-        {{ relation.Name }}
-        &emsp;
+        {{ relation.name }}
+        &emsp;&lt;-&gt;
+        {{ relation.revname }}
         <button @click="deleteRelation(relation.id)">删除</button>
       </div>
     </div>
@@ -28,8 +29,9 @@
   </div>
 </template>
 <script>
-import { mapState } from 'vuex/dist/vuex.cjs.js'
 import req from '../../js/req'
+import data from '../../js/data'
+
 export default {
   name: 'Bookrelation',
   props: {
@@ -39,11 +41,14 @@ export default {
     return {
       isshowNewRelation: false,
       relation: {},
-      relationlist: this.S_relationlist === undefined ? [] : this.S_relationlist[this.book.id] || []
+      relationlist: []
     }
   },
-  created() {
-    this.$store.commit('initrelationlist', {id: this.book.id})
+  async created() {
+    if (this.$store.state.relationlist[this.book.id] === undefined) {
+      await data.initBookRelation(this.$store, this.book.id)
+    }
+    this.relationlist = this.$store.state.relationlist[this.book.id]
   },
   methods: {
     comfirmNewRelation() {
@@ -66,10 +71,10 @@ export default {
       this.isshowNewRelation = false
     },
     deleteRelation(id) {
-      req.post(this.$store.state.conf, 'bookdeleterelation', {id: id}).then(
+      req.post(this.$store.state.conf, 'bookdelrelationtype', {id: id}).then(
         res => {
-          if (res === 'done') {
-            this.$store.emit('deleteRelationType', {id: this.book.id, relationId: id})
+          if (res.data === 'done') {
+            this.$store.commit('deleteRelationType', {id: this.book.id, relationId: id})
             this.$bus.emit('popupcheck')
           } else {
             this.$bus.emit('popuperror', '删除失败')
@@ -80,10 +85,7 @@ export default {
     editRelation(id) {
       // TODO 编辑关系，后续实现
     }
-  },
-  computed: mapState({
-    S_relationlist: state => state.relationlist
-  })
+  }
 }
 </script>
 <style lang="stylus" scoped>
