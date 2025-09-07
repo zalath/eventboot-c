@@ -17,7 +17,7 @@
           <i class="fa fa-plus"></i>
           <i class="fa fa-link"></i>
         </div>
-        <div class="clipbtn" @click="toEditPart('new')">
+        <div class="clipbtn" @click="toEditPart('new', 1)">
           <i class="fa fa-plus"></i>
         </div>
       </div>
@@ -28,7 +28,7 @@
         {{ p2.name }}
         <!-- 删除 -->
       </div>
-      <div class="clipbtn" @click="openEdit('new')">
+      <div class="clipbtn" @click="toEditPart('new', 2)">
         <i class="fa fa-plus"></i>
       </div>
     </div>
@@ -36,8 +36,8 @@
     <div>
       <!-- delete this part-->
     </div>
-    <Partedit v-if="isShowPartEdit" :type="editType" :partid="partid" :bookid="bookid"></Partedit>
-    <Relationedit v-if="isShowRelationEdit" :partid="partid" :bookid="bookid"></Relationedit>
+    <Partedit v-if="isShowPartEdit" :parttype="partType" :partid="partid" :bookid="bookid" :edittype="editType" @close="isShowPartEdit=false"></Partedit>
+    <Relationedit v-if="isShowRelationEdit" :partid="partid" :bookid="bookid" @close="isShowRelationEdit=false"></Relationedit>
   </div>
 </template>
 
@@ -58,6 +58,7 @@ export default {
       relation2: [],
       part: {},
       editType: '',
+      partType: '',
       isShowPartEdit: false,
       isShowRelationEdit: false
     }
@@ -79,16 +80,17 @@ export default {
   },
   methods: {
     openPart(id) {
-      this.emit('openOne', id)
+      this.$emit('openOne', id)
     },
     toEditRelation() {
       // 为当前节点，绑定关系子节点
-      this.isShowRelationEdit = true
+      this.isShowRelationEdit = !this.isShowRelationEdit
     },
-    toEditPart(type) {
+    toEditPart(type, partType) {
       // 为当前节点，增加子节点
       this.editType = type
-      this.isShowPartEdit = true
+      this.partType = partType
+      this.isShowPartEdit = !this.isShowPartEdit
     },
     saveEdit() {
       if (this.isShowAdd) {

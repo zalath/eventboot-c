@@ -97,5 +97,6 @@ export default {
   left 50%
   transform translate(-50%, -50%)
   border solid 1px red
+  background-color black
 </style>
 <style lang="stylus" src='../../css/cyber.styl' scoped></style>

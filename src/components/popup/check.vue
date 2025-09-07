@@ -54,7 +54,7 @@ export default {
         this.iscopy = false
         this.iserror = false
         this.errormsg = ''
-      }, 300);
+      }, 700);
     }
   }
 }

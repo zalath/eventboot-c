@@ -1,45 +1,84 @@
 <template>
-  <div class="partedit" v-show="isShowEdit">
+  <div class="partedit">
     <div>pic:<input v-model="editpart.pic"/></div>
       <div>name:<input v-model="editpart.name"/></div>
       <div>age:<input v-model="editpart.age"/></div>
       <div>desc:<input v-model="editpart.desc"/></div>
-      <div>type:<input v-model="editpart.type"/></div>
+      <div v-if="this.relationpos == 1">relation:
+        <select v-model="relationid">
+          <option v-for="r in relationlist[this.bookid]" :key="r.id" :value="r.id">{{ r.name }} => {{ r.revname }}</option>
+        </select>
+      </div>
+      <div v-if="this.relationpos == 2">relation:
+        <select v-model="relationid">
+          <option v-for="r in relationlist[this.bookid]" :key="r.id" :value="r.id">{{ r.revname }} => {{ r.name }}</option>
+        </select>
+      </div>
+      <div>relationpos：
+        <select v-model="relationpos">
+          <option key="1" value="1">正向</option>
+          <option key="2" value="2">反向</option>
+        </select>
+      </div>
       <div>
-        <button @click="isShowEdit = !isShowEdit">取消</button>
-        <button @click="saveEdit">确定</button>
+        <div class="clipbtn" @click="$emit('close')">
+          <i class="fa fa-times"></i>
+        </div>
+        <div class="clipbtn" @click="saveEdit()">
+          <i class="fa fa-check"></i>
+        </div>
       </div>
   </div>
 </template>
 <script>
 import { mapState } from 'vuex/dist/vuex.cjs.js';
+import req from '../../js/req.js'
 export default {
   name: 'Partedit',
   props: {
-    type: String,
-    bookid: {}
+    edittype: String, // edit or new
+    parttype: String, // 1角色part,2剧情part
+    partid: Number,
+    bookid: Number
   },
   data: function() {
     return {
-      editpart: {
-        partid: '',
-        pic: '',
-        name: '',
-        age: 0,
-        desc: '',
-        type: 'new'
-      },
-      isShowEdit: false
+      editpart: {},
+      relationid: Number,
+      relationpos: 1
     }
   },
   created() {
-    // 注册事件监听，获取要编辑的partid，$store.state.parts更新editpart
+    if (this.edittype !== 'new') {
+      this.editpart = this.parts[this.bookid][this.partid]
+    } else {
+      this.editpart = {
+        pic: '',
+        name: '',
+        age: 0,
+        desc: ''
+      }
+    }
   },
   methods: {
     saveEdit() {
-      if (this.editingpart.type === 'new') {
-        this.$store.emit('addParts')
-      }
+      if (this.edittype === 'new') {
+        this.editpart.type = this.parttype
+        this.editpart.pct = 0
+        this.editpart.p1 = this.partid
+        this.editpart.relationid = this.relationid
+        this.editpart.relationpos = this.relationpos
+        req.post(this.$store.state.conf, 'booknewpart', this.editpart).then(res => {
+          if (res === 'mis') {
+            this.$bus.emit('popuperror', '创建失败')
+            this.$emit('close')
+          } else {
+            this.$store.commit('addPart', {id: this.bookid, partid: res.id, part: res})
+            this.$bus.emit('popupcheck')
+            this.$emit('close')
+          }
+        })
+      } else {}
     }
   },
   computed: mapState({
@@ -49,6 +88,14 @@ export default {
 }
 </script>
 <style lang="stylus" scoped>
-
+.partedit
+  position fixed
+  width 90%
+  height 50%
+  top 50%
+  left 50%
+  transform translate(-50%, -50%)
+  border solid 1px red
+  background-color black
 </style>
 <style lang="stylus" src='../../css/cyber.styl' scoped></style>

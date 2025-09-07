@@ -9,7 +9,12 @@
     <select v-model="choosedp2">
       <option v-for="p in parts[bookid]" :key="p.id" :value="p.id">{{ p.name }}</option>
     </select>
-
+    <div class="clipbtn" @click="$emit('close')">
+      <i class="fa fa-times"></i>
+    </div>
+    <div class="clipbtn" @click="saveEdit()">
+      <i class="fa fa-check"></i>
+    </div>
   </div>
 </template>
 
@@ -37,6 +42,11 @@ export default {
   components: {},
   methods: {
     saveEdit() {
+      if (this.part.id === this.choosedp2) {
+        this.$bus.emit('popuperror', '两个节点不能一样')
+        return
+      }
+      // TODO: 查询两者是否已经存在关系，并返回关系名称
       req.post(this.$store.state.conf, 'bookmakerelation', {
         p1: this.part.id,
         p2: this.choosedp2,
