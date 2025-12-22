@@ -62,7 +62,7 @@ export default {
     }
   },
   created() {
-    this.getnotes()
+    this.$ipc.on('taskreload', this.getnotes)
     this.$bus.on('showknote', this.toggleshowknote)
   },
   directives: {
@@ -117,7 +117,7 @@ export default {
       this.showknote = !this.showknote
     },
     getnotes() {
-      req.get(this.$store.state.conf, 'readknote').then((res) => {
+      req.get('readknote').then((res) => {
         this.notes = JSON.parse(res.data)
       })
     },

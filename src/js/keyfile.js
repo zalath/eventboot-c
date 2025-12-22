@@ -30,12 +30,12 @@ keyfile.setkeyfile = function(win, data) {
   })
 }
 keyfile.synckeyfile = function(win, data) {
-  req.post(global.gconf, "/setkeyfile", data).then((res)=>{
+  req.post("/setkeyfile", data).then((res)=>{
     win.webContents.send('keyfilesaved')
   })
 }
 keyfile.downloadfile = function(win) {
-  req.get(global.gconf, "/readkeyfile").then((res)=>{
+  req.get("/readkeyfile").then((res)=>{
     Keyfile.setkeyfile(win, res)
     win.webContents.send('keyfilesaved')
   })

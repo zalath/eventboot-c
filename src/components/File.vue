@@ -306,7 +306,7 @@ export default {
       if (this.filefrom === 'note') {
         cmd = 'nsave'
       }
-      req.post(this.$store.state.conf, cmd, this.flin).then((res) => {
+      req.post(cmd, this.flin).then((res) => {
         this.t('save back')
         this.$bus.emit('editalldone', this.tlin)
       })

@@ -358,7 +358,7 @@ export default {
     },
     downloadkeyfile() {
       this.isDownload = false
-      req.get(this.$store.state.conf, 'readkeyfile').then((res) => {
+      req.get('readkeyfile').then((res) => {
         this.lines = JSON.parse(res.data)
         this.saveKeyFile()
       })

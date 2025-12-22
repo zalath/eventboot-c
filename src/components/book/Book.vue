@@ -26,12 +26,12 @@ export default {
     }
   },
   created() {
-    this.getbook()
+    this.$ipc.on('taskreload', this.getbook)
   },
   methods: {
     getbook() {
       console.log('in getbook')
-      req.get(this.$store.state.conf, 'booklist', '').then((res) => {
+      req.get('booklist', '').then((res) => {
         this.booklist = res.data
       })
     }
