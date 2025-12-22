@@ -122,7 +122,7 @@ export default {
       })
     },
     setnotes() {
-      req.post(this.$store.state.conf, 'setknote', {content: JSON.stringify(this.notes)}).then((res) => {
+      req.post('setknote', {content: JSON.stringify(this.notes)}).then((res) => {
         this.$bus.emit('popupcheck')
       })
     }

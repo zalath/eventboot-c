@@ -91,7 +91,7 @@ export default {
     },
     doedit() {
       console.log('saving')
-      req.post(this.$store.state.conf, 'nsave', this.lin).then((res) => {
+      req.post('nsave', this.lin).then((res) => {
         if (res.data === 'done') {
           this.$bus.emit('editdone', this.lin)
         }
@@ -99,7 +99,7 @@ export default {
     },
     donew() {
       this.lin.pid = this.pid;
-      req.post(this.$store.state.conf, 'nnew', this.lin).then((res) => {
+      req.post('nnew', this.lin).then((res) => {
         if (res.data !== 'mis') {
           this.lin.id = res.data
           this.$bus.emit('editdone', this.lin)
@@ -107,7 +107,7 @@ export default {
       });
     },
     donewAddLin() {
-      req.post(this.$store.state.conf, 'nel', { id: this.lin.id}).then((res) => {
+      req.post('nel', { id: this.lin.id}).then((res) => {
         if (res.status) {
           this.t(res.data, 'adding lin return')
           this.$bus.emit('nnew' + this.pid, res.data);

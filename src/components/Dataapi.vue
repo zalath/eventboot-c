@@ -29,9 +29,7 @@ export default {
   },
   methods: {
     reload() {
-      this.$store.state.conf.conf.api = this.apiurl + this.apiport + '/'
-      var c = JSON.parse(JSON.stringify(this.$store.state.conf))
-      this.$ipc.send('setconfig', c)
+      this.$store.commit('setApi', this.apiurl + this.apiport + '/')
       this.$bus.emit('taskreload')
       this.showsetapi = false
     },

@@ -21,7 +21,7 @@ export default {
     refresh() {
       this.tlin.Child = null
       var that = this
-      req.post(this.gconf, 'nel', { id: this.tlin.id }).then((res) => {
+      req.post('nel', { id: this.tlin.id }).then((res) => {
         res.type = 'el'
         that.$bus.emit('nrefreshel' + that.tlin.id, res)
         that.$parent.getlins()

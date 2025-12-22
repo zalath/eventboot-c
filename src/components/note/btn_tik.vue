@@ -27,7 +27,7 @@ export default {
       } else {
         this.tlin.tik += 1
       }
-      req.post(this.gconf, 'ntik', { id: this.tlin.id, tik: this.tlin.tik })
+      req.post('ntik', { id: this.tlin.id, tik: this.tlin.tik })
     }
   }
 }

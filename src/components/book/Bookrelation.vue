@@ -2,7 +2,7 @@
   <div class="relationbox">
     <div>{{ book.name }}</div>
     <div>
-      <div v-for="(relation,i) in relationlist" :key="i">
+      <div v-for="(relation,i) in relationtypelist" :key="i">
         {{ relation.name }}
         &emsp;&lt;-&gt;
         {{ relation.revname }}
@@ -41,14 +41,14 @@ export default {
     return {
       isshowNewRelation: false,
       relation: {},
-      relationlist: []
+      relationtypelist: []
     }
   },
   async created() {
-    if (this.$store.state.relationlist[this.book.id] === undefined) {
+    if (this.$store.state.relationtypelist[this.book.id] === undefined) {
       await data.initBookRelation(this.$store, this.book.id)
     }
-    this.relationlist = this.$store.state.relationlist[this.book.id]
+    this.relationtypelist = this.$store.state.relationtypelist[this.book.id]
   },
   methods: {
     comfirmNewRelation() {
@@ -58,7 +58,7 @@ export default {
         this.$bus.emit('popuperror', '请输入完整信息')
         return
       }
-      req.post(this.$store.state.conf, 'bookcreaterelationtype', this.relation).then(
+      req.post('bookcreaterelationtype', this.relation).then(
         res => {
           if (res.data !== 'mis') {
             this.$store.commit('addRelationType', {id: this.book.id, relation: res.data})
@@ -71,7 +71,7 @@ export default {
       this.isshowNewRelation = false
     },
     deleteRelation(id) {
-      req.post(this.$store.state.conf, 'bookdelrelationtype', {id: id}).then(
+      req.post('bookdelrelationtype', {id: id}).then(
         res => {
           if (res.data === 'done') {
             this.$store.commit('deleteRelationType', {id: this.book.id, relationId: id})

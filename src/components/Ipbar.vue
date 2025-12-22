@@ -29,7 +29,7 @@ export default {
       this.$bus.emit('showsetapi')
     },
     resetipval() {
-      this.ipval = this.$store.state.conf.conf.api
+      this.ipval = this.$store.state.api
     },
     toggleknote() {
       this.$bus.emit('showknote')

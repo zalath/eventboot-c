@@ -38,9 +38,9 @@ export default {
   methods: {
     getlins() {
       var that = this
-      req.post(this.$store.state.conf, 'el', { id: 0 }).then((res) => {
+      req.post('el', { id: 0 }).then((res) => {
         that.lin = res.data;
-        req.post(this.$store.state.conf, 'list', { id: 0 }).then((res) => {
+        req.post('list', { id: 0 }).then((res) => {
           that.lin.Child = res.data
           that.dataready = true
           console.log('task reloaded')

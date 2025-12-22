@@ -47,7 +47,7 @@ export default {
         return
       }
       // TODO: 查询两者是否已经存在关系，并返回关系名称
-      req.post(this.$store.state.conf, 'bookmakerelation', {
+      req.post('bookmakerelation', {
         p1: this.part.id,
         p2: this.choosedp2,
         relationid: this.choosedrelation

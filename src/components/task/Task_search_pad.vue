@@ -44,7 +44,7 @@ export default {
         console.log('err')
         return
       }
-      req.post(this.$store.state.conf, 'find', { key: this.searchval}).then((res) => {
+      req.post('find', { key: this.searchval}).then((res) => {
         that.lins = res.data
       })
     },

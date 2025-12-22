@@ -3,20 +3,36 @@
 const { default: req } = require('./req');
 
 class conf { }
-conf.getconfig = function() {
+conf.getconflist = function(win) {
+  // 获取后台的配置文件列表
+  req.get('conflist').then((res) => {
+    win.webContents.send('conflist', JSON.parse(res.data))
+  })
+}
+conf.setconfname = function(name) {
+  // save remote config file name to c.json
+  var path = process.cwd() + '/c.json'
+  var fs = require('fs')
+  fs.writeFile(path, name, function (err) {
+    if (err) return console.log(err)
+  })
+}
+conf.getconfig = function(win) {
   var path = process.cwd() + '/c.json'
   var fs = require('fs')
   fs.readFile(path, 'utf8', function (err, data) {
     if (!err) {
-      global.gconf = JSON.parse(data)
-    } else {
-      const defaultConf = '{"starter":[],"boot":[],"conf":{"api":"http://192.168.2.1:10488/","src":""}}'
-      conf.setconfig(null, JSON.parse(defaultConf))
+      req.post('getconffile', {filename:data}).then((res) => {
+        global.gconf = JSON.parse(res.data)
+        win.webContents.send('loaded', global.gconf)
+        win.webContents.send('taskreload')
+      })
     }
   });
 }
 conf.getapi = function(win) {
-  var pre = global.gconf.conf.api.substring(0, global.gconf.conf.api.lastIndexOf('.') + 1)
+  var pre = global.gconfapi == undefined? 'http://192.168.2.1' : global.gconfapi
+  pre = pre.substring(0, pre.lastIndexOf('.') + 1)
   for (let i = 1; i < 256; i++) {
     var fullip = pre + i + ':10488/';
     // console.log(fullip)
@@ -27,26 +43,16 @@ conf.checkapi = function(ip, url, win) {
   var ipreq = url + 'ping';
   req.ipget(ipreq).then((res) => {
     if (res.data.message === 'pong') {
-      global.gconf.conf.api = url
-      this.setconfig(null, global.gconf)
-      win.webContents.send('loaded', global.gconf)
-      win.webContents.send('taskreload')
+      console.log('api is ' + url)
+      global.gconfapi = url
+      this.getconfig(win)
       this.changeFTPip(ip)
+      win.webContents.send('setapi',url)
     }
   }).catch((res) => {
     // console.log(res)
     // console.log('api check error 0')
   })
-}
-conf.changeFTPip = function(ip) {
-  ip = ip.replace(/http:\/\//g, '')
-  const ftpconfpath = 'c:/Users/Administrator/AppData/Roaming/FileZilla/sitemanager.xml';
-  // 读取文件内容
-  var fs = require('fs')
-  let ftpconfdata = fs.readFileSync(ftpconfpath, 'utf8')
-  // 替换配置中的字符串为新ip
-  ftpconfdata = ftpconfdata.replace(/192\.168\.\d{1,3}\.\d{1,3}<\/Host>\n\t\t\t<Port>2121<\/Port>/g, ip + '</Host>\n\t\t\t<Port>2121</Port>')
-  fs.writeFileSync(ftpconfpath, ftpconfdata)
 }
 conf.setconfig = function(win, data) {
   var path = process.cwd() + '/c.json'
@@ -61,10 +67,24 @@ conf.setconfig = function(win, data) {
     }
   }
   global.gconf = data
-  var confdata = JSON.stringify(data)
   if (win !== null) win.webContents.send('initd', data)
-  fs.writeFile(path, confdata, function() {
-    if (win !== null) win.webContents.send('confsaved');
-  })
+  fs.readFile(path, 'utf8', function (err, filename) {
+    if (!err) {
+      var confdata = JSON.stringify(global.gconf)
+      req.post('setconffile', { content: confdata, filename: filename }).then((res) => {
+        if (win !== null) win.webContents.send('confsaved')
+      })
+    }
+  });
+}
+conf.changeFTPip = function(ip) {
+  ip = ip.replace(/http:\/\//g, '')
+  const ftpconfpath = 'c:/Users/Administrator/AppData/Roaming/FileZilla/sitemanager.xml';
+  // 读取文件内容
+  var fs = require('fs')
+  let ftpconfdata = fs.readFileSync(ftpconfpath, 'utf8')
+  // 替换配置中的字符串为新ip
+  ftpconfdata = ftpconfdata.replace(/192\.168\.\d{1,3}\.\d{1,3}<\/Host>\n\t\t\t<Port>2121<\/Port>/g, ip + '</Host>\n\t\t\t<Port>2121</Port>')
+  fs.writeFileSync(ftpconfpath, ftpconfdata)
 }
 module.exports = conf

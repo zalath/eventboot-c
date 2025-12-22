@@ -55,10 +55,10 @@ export default {
       }
     },
     async loadrelation() {
-      await data.initBookRelation(this.$store, this.book.id)
+      await data.initBookRelationType(this.$store, this.book.id)
     },
     async loadbook() {
-      const res = await req.post(this.$store.state.conf, 'bookparts', { id: this.book.id })
+      const res = await req.post('bookparts', { id: this.book.id })
       if (res !== 'mis' && res.data != null) {
         var pt = {}
         res.data.forEach(p => {

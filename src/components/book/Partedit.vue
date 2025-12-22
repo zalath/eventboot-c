@@ -6,12 +6,12 @@
       <div>desc:<input v-model="editpart.desc"/></div>
       <div v-if="this.relationpos == 1">relation:
         <select v-model="relationid">
-          <option v-for="r in relationlist[this.bookid]" :key="r.id" :value="r.id">{{ r.name }} => {{ r.revname }}</option>
+          <option v-for="r in relationtypelist[this.bookid]" :key="r.id" :value="r.id">{{ r.name }} => {{ r.revname }}</option>
         </select>
       </div>
       <div v-if="this.relationpos == 2">relation:
         <select v-model="relationid">
-          <option v-for="r in relationlist[this.bookid]" :key="r.id" :value="r.id">{{ r.revname }} => {{ r.name }}</option>
+          <option v-for="r in relationtypelist[this.bookid]" :key="r.id" :value="r.id">{{ r.revname }} => {{ r.name }}</option>
         </select>
       </div>
       <div>relationpos：
@@ -68,12 +68,16 @@ export default {
         this.editpart.p1 = this.partid
         this.editpart.relationid = this.relationid
         this.editpart.relationpos = this.relationpos
-        req.post(this.$store.state.conf, 'booknewpart', this.editpart).then(res => {
+        this.editpart.bookid = this.bookid
+        console.log(this.editpart)
+        req.post('booknewpart', this.editpart).then(res => {
+          console.log(res)
           if (res === 'mis') {
             this.$bus.emit('popuperror', '创建失败')
             this.$emit('close')
           } else {
-            this.$store.commit('addPart', {id: this.bookid, partid: res.id, part: res})
+            this.$store.commit('addParts', {id: this.bookid, partid: res.data.id, part: res.data})
+            // this.$store.commit('addRelation', {id: this.bookid, partid: res.data.id, relation: })
             this.$bus.emit('popupcheck')
             this.$emit('close')
           }
@@ -82,7 +86,7 @@ export default {
     }
   },
   computed: mapState({
-    relationlist: state => state.relationlist,
+    relationtypelist: state => state.relationtypelist,
     parts: state => state.parts
   })
 }

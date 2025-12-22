@@ -8,8 +8,10 @@ export default createStore({
     pathReady: 0,
     keypass: '',
 
-    relationlist: [],
-    parts: []
+    relationtypelist: [],
+    parts: [],
+
+    api: ''
   },
   mutations: {
     setConf(st, val) {
@@ -28,17 +30,15 @@ export default createStore({
       st.keypass = val
     },
 
-    // 初始化书籍关系
-    async initrelationlist(state, param) {
-      state.relationlist[param.id] = param.relations
-    },
     // 初始化书的部分
     async initParts(state, param) {
       state.parts[param.id] = param.partlist
     },
     // 新创建的part增加进队列
     addParts(state, param) {
-      state.parts[param.id][param.partid] = param.part
+      var temp = state.parts
+      temp[param.id][param.partid] = param.part
+      state.parts = temp
     },
     // 去编辑新的节点
     toEditPart(state, param) {
@@ -56,13 +56,20 @@ export default createStore({
     initPartRelation(state, param) {
       state.parts[param.id][param.partid].relations = param.relations
     },
+    // 初始化书籍关系类型
+    async initrelationtypelist(state, param) {
+      state.relationtypelist[param.id] = param.relations
+    },
     // 添加新的关系到指定书籍中
     addRelationType(state, param) {
-      state.relationlist[param.id][param.relation.id] = param.relation
+      state.relationtypelist[param.id][param.relation.id] = param.relation
     },
     // 删除关系类型
     deleteRelationType(state, param) {
-      delete state.relationlist[param.id][param.relationId]
+      delete state.relationtypelist[param.id][param.relationId]
+    },
+    setApi(state, val) {
+      state.api = val
     }
   },
   getters: {

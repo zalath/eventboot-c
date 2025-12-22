@@ -324,7 +324,7 @@ export default {
     },
     // 自动从后端服务器拿加密密码
     readkeypassRemote() {
-      req.post(this.$store.state.conf, 'keygetbyname', {name: 'keypass'}).then((res) => {
+      req.post('keygetbyname', {name: 'keypass'}).then((res) => {
         // if (!res.status) return
         if (res.data.val === '') {
           this.showpass = true
@@ -348,7 +348,7 @@ export default {
     synckeyfile() {
       this.isSync = false
       var data = JSON.stringify(this.formdata())
-      req.post(this.$store.state.conf, 'setkeyfile', {content: data}).then((res) => {
+      req.post('setkeyfile', {content: data}).then((res) => {
         if (res.data) {
           this.$bus.emit('popupcheck')
         }

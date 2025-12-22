@@ -271,7 +271,7 @@ export default {
         this.checkfin()
         return
       }
-      req.post(this.$store.state.conf, 'fdel', {del: file}).then((res) => {
+      req.post('fdel', {del: file}).then((res) => {
         if (res.status) {
           if (res.data === 'done') {
             this.t('done', 'del')

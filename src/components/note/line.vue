@@ -95,7 +95,7 @@ export default {
     },
     getlins() {
       var that = this
-      req.post(this.gconf, 'nlist', { id: this.tlin.id }).then((res) => {
+      req.post('nlist', { id: this.tlin.id }).then((res) => {
         res.type = 'child'
         that.$bus.emit('nrefreshel' + that.tlin.id, res)
       })

@@ -66,6 +66,10 @@ export default {
       this.showerr(e);
     });
     this.$ipc.send('searchapi')
+    this.$ipc.on('setapi', (event, e) => {
+      console.log('seting api', e)
+      this.$store.commit('setApi', e)
+    })
   },
   methods: {
     // setpage: function(e) {

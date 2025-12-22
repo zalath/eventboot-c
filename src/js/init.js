@@ -8,12 +8,13 @@ const keyfile = require('./keyfile');
 const { dialog } = require('electron');
 // const { DownloadItem } = require('electron');
 global.isloaded = false
-conf.getconfig()
+// conf.getconfig()
 keyfile.getkeyfile()
 class init {
 }
 init.saveUrl = ''
 init.initipc = function (win, ipc, shell, app) {
+  conf.getapi(win)
   this.win = win
   ipc.on('opendevtool', function (event, e) {
     console.log('in opening dev tools')

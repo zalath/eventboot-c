@@ -38,9 +38,11 @@ export default {
   methods: {
     getlins() {
       var that = this
-      req.post(this.$store.state.conf, 'nel', { id: 0 }).then((res) => {
+      console.log('in get lines')
+      console.log(this.$store.state)
+      req.post('nel', { id: 0 }).then((res) => {
         that.lin = res.data;
-        req.post(this.$store.state.conf, 'nlist', { id: 0 }).then((res) => {
+        req.post('nlist', { id: 0 }).then((res) => {
           // console.log(res)
           that.lin.Child = res.data
           this.dataready = true

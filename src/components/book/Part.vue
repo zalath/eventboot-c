@@ -6,11 +6,21 @@
       {{ part.desc }}
     </div>
     <div class="divider"></div>
-    <div>
-      <div v-for="(r1,i) in relation1" :key="i" @click="openPart(p1)">
-        {{ r1.p1 === partid ?parts[r1.p2].name:parts[r1.p1].name }}
-        :{{ r1.p1 === partid ?relationlist[r1.relationid].revname:relationlist[r1.relationid].name }}
-        <!-- 删除 -->
+    <div class="partlist">
+      <div v-for="(r1,i) in parts[bookid][partid].relations" :key="i" @click="openPart(p1)">
+        <div v-if="r1.p1 == partid">
+          <div v-if="parts[bookid][r1.p2].type == 1">
+            {{ parts[bookid][r1.p2].name }}
+            --{{ relationtypelist[bookid][r1.relationid].revname }}
+            <!-- 删除 -->
+          </div>
+        </div>
+        <div v-else>
+          <div v-if="parts[bookid][r1.p1].type == 1">
+            {{ parts[bookid][r1.p1].name }}
+            --{{ relationtypelist[bookid][r1.relationid].name }})
+          </div>
+        </div>
       </div>
       <div>
         <div class="clipbtn" @click="toEditRelation()">
@@ -54,8 +64,6 @@ export default {
   },
   data() {
     return {
-      relation1: [],
-      relation2: [],
       part: {},
       editType: '',
       partType: '',
@@ -66,12 +74,15 @@ export default {
   created() {
     // 获得本模块儿的子项关系
     this.part = this.parts[this.bookid][this.partid]
-    req.post(this.$store.state.conf, 'bookparts', { id: this.partid }).then(
+    req.post('bookpartrelationlist', { id: this.partid }).then(
       (res) => {
+        console.log('getting part relation')
+        console.log(res)
         if (res !== 'mis') {
-          this.$store.commit('initPartRelation', {id: this.bookid, partid: this.partid, relations: res.data})
-          this.relation1 = res.data.filter(p => p.type === 1);
-          this.relation2 = res.data.filter(p => p.type === 2);
+          this.$store.commit(
+            'initPartRelation',
+            {id: this.bookid, partid: this.partid, relations: res.data}
+          )
         }
       }
     )
@@ -92,18 +103,6 @@ export default {
       this.partType = partType
       this.isShowPartEdit = !this.isShowPartEdit
     },
-    saveEdit() {
-      if (this.isShowAdd) {
-        this.editpart.p1 = this.part.id
-        this.editpart.relationid = this.choosedrelation.id
-        this.editpart.relationpos = this.choosedrelation.pos
-        req.post(this.$store.state.conf, 'booknewpart', this.editpart).then(res => {
-          this.isShowAdd = false
-          res.Relationname = this.choosedrelation.pos === 1 ? this.choosedrelation.name : this.choosedrelation.revname
-        })
-      } else {
-      }
-    },
     deletePart() {
       // 删除当前节点
     }
@@ -112,10 +111,12 @@ export default {
     Partedit,
     Relationedit
   },
-  computed: mapState({
-    parts: state => state.parts,
-    relationlist: state => state.relationlist
-  })
+  computed: {
+    ...mapState({
+      parts: state => state.parts,
+      relationtypelist: state => state.relationtypelist
+    })
+  }
 }
 </script>
 <style lang="stylus" scoped>
