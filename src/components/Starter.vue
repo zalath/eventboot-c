@@ -5,21 +5,25 @@
       <div class="cp clipbtn" @click="setShowStarter(false)">
         <i class="fa fa-caret-right"/>
       </div>
+      <confRefresh></confRefresh>
     </div>
     <div class="tlist" v-else>
       <div class="cp clipbtn" @click="setShowStarter(true)">
         <i class="fa fa-caret-left"/>
       </div>
+      <confRefresh></confRefresh>
     </div>
   </div>
 </template>
 
 <script>
 import stLine from './Starterline'
+import confRefresh from './ConfRefresh'
 export default {
   name: 'App',
   components: {
-    stLine
+    stLine,
+    confRefresh
   },
   data: function() {
     return {
@@ -31,7 +35,7 @@ export default {
   },
   created: function() {
     this.$bus.on('setShowStarter', this.setShowStarter)
-    this.initstart()
+    this.$ipc.on('taskreload', this.initstart)
   },
   methods: {
     initstart: function() {

@@ -12,7 +12,6 @@ export default {
   },
   post: async function(url, data) {
     const api = this.getapi()
-    console.log(api + url, data)
     return axios.post(api + url, qs.stringify(data), {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     });

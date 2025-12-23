@@ -6,15 +6,16 @@ class conf { }
 conf.getconflist = function(win) {
   // 获取后台的配置文件列表
   req.get('conflist').then((res) => {
-    win.webContents.send('conflist', JSON.parse(res.data))
+    win.webContents.send('conflist', res.data)
   })
 }
-conf.setconfname = function(name) {
+conf.setconfname = function(win, name) {
   // save remote config file name to c.json
   var path = process.cwd() + '/c.json'
   var fs = require('fs')
   fs.writeFile(path, name, function (err) {
     if (err) return console.log(err)
+    else conf.getconfig(win)
   })
 }
 conf.getconfig = function(win) {
@@ -35,7 +36,6 @@ conf.getapi = function(win) {
   pre = pre.substring(0, pre.lastIndexOf('.') + 1)
   for (let i = 1; i < 256; i++) {
     var fullip = pre + i + ':10488/';
-    // console.log(fullip)
     this.checkapi(pre + i, fullip, win)
   }
 }
@@ -43,7 +43,6 @@ conf.checkapi = function(ip, url, win) {
   var ipreq = url + 'ping';
   req.ipget(ipreq).then((res) => {
     if (res.data.message === 'pong') {
-      console.log('api is ' + url)
       global.gconfapi = url
       this.getconfig(win)
       this.changeFTPip(ip)

@@ -49,8 +49,14 @@ init.initipc = function (win, ipc, shell, app) {
       win.webContents.send('nload')
     }
   })
+  ipc.on('getconflist', function(event) {
+    conf.getconflist(win)
+  })
   ipc.on('setconfig', function(event, e) {
     conf.setconfig(win, e);
+  })
+  ipc.on('setconfname', function(event, e) {
+    conf.setconfname(win, e);
   })
   ipc.on('getkeyfile', function(event) {
     if (global.keyfile) {
