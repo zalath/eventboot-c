@@ -1,29 +1,32 @@
 <template>
   <div id="app" class="app">
-    <div class="tlist" v-if="showStarter">
-      <stLine v-for="(line,ind) in stList" :line="line" :key="ind"></stLine>
-      <div class="cp clipbtn" @click="setShowStarter(false)">
-        <i class="fa fa-caret-right"/>
+    <div class="tlist">
+      <div v-if="showStarter">
+        <stLine v-for="(line,ind) in stList" :line="line" :key="ind"></stLine>
+        <div class="cp clipbtn" @click="setShowStarter(false)">
+          <i class="fa fa-caret-right"/>
+        </div>
       </div>
-      <confRefresh></confRefresh>
-    </div>
-    <div class="tlist" v-else>
-      <div class="cp clipbtn" @click="setShowStarter(true)">
-        <i class="fa fa-caret-left"/>
+      <div v-else>
+        <div class="cp clipbtn" @click="setShowStarter(true)">
+          <i class="fa fa-caret-left"/>
+        </div>
       </div>
-      <confRefresh></confRefresh>
+      <div class="clipbtn" @click="toggleConfFileList">
+        <span v-if="$store.state.conffilename != ''">{{ $store.state.conffilename }}</span>
+        <i v-else class="fa fa-refresh"></i>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 import stLine from './Starterline'
-import confRefresh from './ConfRefresh'
+
 export default {
   name: 'App',
   components: {
-    stLine,
-    confRefresh
+    stLine
   },
   data: function() {
     return {
@@ -43,6 +46,9 @@ export default {
     },
     setShowStarter: function(is) {
       this.showStarter = is
+    },
+    toggleConfFileList: function() {
+      this.$store.commit('toggleConfFileList')
     }
   }
 }

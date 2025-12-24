@@ -11,6 +11,9 @@ export default createStore({
     relationtypelist: [],
     parts: [],
 
+    isshowconffilelist: false,
+    conffilename: '',
+
     api: ''
   },
   mutations: {
@@ -70,6 +73,16 @@ export default createStore({
     },
     setApi(state, val) {
       state.api = val
+    },
+    toggleConfFileList(state, val = '') {
+      if (val === '') {
+        state.isshowconffilelist = !state.isshowconffilelist
+      } else {
+        state.isshowconffilelist = val
+      }
+    },
+    setConfFileName(state, val) {
+      state.conffilename = val
     }
   },
   getters: {

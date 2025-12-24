@@ -25,6 +25,7 @@ conf.getconfig = function(win) {
     if (!err) {
       req.post('getconffile', {filename:data}).then((res) => {
         global.gconf = JSON.parse(res.data)
+        global.gconf.conffilename = data
         win.webContents.send('loaded', global.gconf)
         win.webContents.send('taskreload')
       })

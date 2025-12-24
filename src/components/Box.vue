@@ -11,6 +11,7 @@
       <keyfile v-show="iskeyfile"/>
       <knote />
       <Book />
+      <Conffilelist/>
     </div>
     <Setapi />
     <popcheck />
@@ -29,6 +30,7 @@ import Menu from './Menu';
 import keyfile from './keyfile/Keyfile';
 import knote from './knote';
 import Book from './book/Book';
+import Conffilelist from './Conffilelist'
 // import Watcher from './Watcher'
 export default {
   components: {
@@ -43,7 +45,8 @@ export default {
     Setapi,
     keyfile,
     knote,
-    Book
+    Book,
+    Conffilelist
     // ,Watcher
   },
   name: 'Box',

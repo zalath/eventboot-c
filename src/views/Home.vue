@@ -37,6 +37,7 @@ export default {
     })
     this.$ipc.on('loaded', function(event, e) {
       that.isloading = false
+      that.$store.commit('setConfFileName', e.conffilename)
       that.$store.commit('setConf', e)
       that.$store.commit('setConfReady', 1)
     })
