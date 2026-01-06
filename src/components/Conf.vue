@@ -185,6 +185,7 @@ export default {
     },
     setconf() {
       var c = JSON.parse(JSON.stringify(this.config))
+      this.$store.commit('setConf', c)
       this.$ipc.send('setconfig', c)
     },
     changeval(e, part, ind, col = '') {

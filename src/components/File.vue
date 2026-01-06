@@ -91,7 +91,7 @@ export default {
     })
     this.flin = this.lin
     this.filelist = this.flin.file && this.flin.file !== '' ? this.flin.file.split(',') : []
-    this.baseurl = this.$store.state.conf.conf.api
+    this.baseurl = this.$store.state.api
     for (var i in this.filelist) {
       this.fileshow[i] = this.baseurl + this.filelist[i]
     }

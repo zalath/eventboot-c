@@ -68,7 +68,7 @@ export default {
     },
     replaceMarkdownUrl(to) {
       const t = '**--==--**'
-      const baseurl = this.$store.state.conf.conf.api
+      const baseurl = this.$store.state.api
       this.t(baseurl)
       if (!this.lin.content) return
       if (to === 'a-url') {
