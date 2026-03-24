@@ -1,8 +1,10 @@
 <template>
   <div class="bookbox">
-    <div v-for="(v,i) in this.booklist" :key="i">
-      <partlist :book="v"></partlist>
-      <div class="divider"></div>
+    <div v-if="isshowbook">
+      <div v-for="(v,i) in this.booklist" :key="i">
+        <partlist :book="v"></partlist>
+        <div class="divider"></div>
+      </div>
     </div>
     <a  class="clipbtn" @click="isshowbook=!isshowbook">
       <i class="fa fa-book"></i>

@@ -1,30 +1,34 @@
 <template>
   <div class="filelistbox">
     <div class="filelist">
-      <div class="filebox" v-for="(file,index) in fileshow" :key="index">
-        <pgbar v-if="fileup[index] && fileup[index] < 100" :now="fileup[index]"/>
+      <div class="filebox" v-for="(file, index) in fileshow" :key="index">
+        <pgbar v-if="fileup[index] && fileup[index] < 100" :now="fileup[index]" />
         <div v-if="files[index] != 'del'" @mouseover="showname(index)" @mouseout="showname('')">
-          <img :class="fileup[index] > 0  && fileup[index] < 100 ? 'fileuploading' : 'file'" @click="toBigpic(index)" :src="file" @error="e => { e.target.src = blankimg }"/>
+          <img :class="fileup[index] > 0 && fileup[index] < 100 ? 'fileuploading' : 'file'" @click="toBigpic(index)"
+            :src="file" @error="e => { e.target.src = blankimg }" />
           <div>
             <div class="fileboxbtn fa fa-refresh" @click="changeFile(index)" />
-            <div class="fileboxbtn fa fa-times" @click="delFile(index)"/>
+            <div class="fileboxbtn fa fa-times" @click="delFile(index)" />
           </div>
         </div>
       </div>
     </div>
     <div>
-      <div class="filename">&nbsp;{{filename}}</div>
+      <div class="filename">&nbsp;{{ filename }}</div>
     </div>
     <button class="fileadd fa fa-plus" v-on:click="addFile()" />
-    <input type="file" ref="file" class="hide" @change="tempFile($event)"/>
+    <input type="file" ref="file" class="hide" @change="tempFile($event)" />
     <div :style="'width:' + bigpic.boxwidth + ';height:' + bigpic.boxheight" class="bigpicdisplay" v-if="bigpic.isshow">
       <div class="imgbox">
-        <img @mousedown="zoommove" @mousewheel="zoom" :style="'left:' + bigpic.imgleft + 'px;top:' + bigpic.imgtop + 'px;width:' + bigpic.imgwidth + '%;height:' + bigpic.imgheight + '%;'" :src="bigpic.pic" @contextmenu="bigpic.isshow=false;bigpic.imgwidth=100;bigpic.imgheight=100" @error="e => { e.target.src = blankimg }">
+        <img @mousedown="zoommove" @mousewheel="zoom"
+          :style="'left:' + bigpic.imgleft + 'px;top:' + bigpic.imgtop + 'px;width:' + bigpic.imgwidth + '%;height:' + bigpic.imgheight + '%;'"
+          :src="bigpic.pic" @contextmenu="bigpic.isshow = false; bigpic.imgwidth = 100; bigpic.imgheight = 100"
+          @error="e => { e.target.src = blankimg }">
         <!-- <img @mousedown="zoommove" @mousewheel="zoom" :style="'left:' + bigpic.imgleft + 'px;top:' + bigpic.imgtop + 'px;width:' + bigpic.imgwidth + '%;'" :src="bigpic.pic" @contextmenu="bigpic.isshow=false;bigpic.imgwidth=100;bigpic.imgheight=100" @error="e => { e.target.src = blankimg }"> -->
       </div>
-      <pgbar class="middle" v-if="downloadRate > 0 && downloadRate < 100" :now="downloadRate" :h="1.5"/>
+      <pgbar class="middle" v-if="downloadRate > 0 && downloadRate < 100" :now="downloadRate" :h="1.5" />
       <div class="bottom bigpicfilename">
-        <span>&nbsp;{{bigpic.filename}}</span>
+        <span>&nbsp;{{ bigpic.filename }}</span>
       </div>
       <div class="bottom bigpicfilebtn">
         <button v-if="bigpic.isdownload" class="bigpicbtn fa fa-download" @click="download()" />
@@ -49,7 +53,7 @@ export default {
     lin: {},
     filefrom: String
   },
-  data: function() {
+  data: function () {
     return {
       blankimg,
       filename: '',
@@ -81,8 +85,7 @@ export default {
       newindex: 0
     }
   },
-  created: function() {
-    this.t('reg file part')
+  created: function () {
     this.$bus.off('editdone')
     this.$bus.on('editdone', this.confirm)
     this.$ipc.removeAllListeners('downloadRate')
@@ -122,7 +125,6 @@ export default {
       return this.filelist[i] === undefined ? this.files[i].name : this.filelist[i].substring(2)
     },
     setDownloadRate(e) {
-      this.t(e)
       if (e === 'shut') e = 0
       this.downloadRate = e
     },
@@ -160,7 +162,7 @@ export default {
       e.preventDefault()
       e.target.addEventListener('mousemove', this.moving)
       var that = this
-      e.target.addEventListener('mouseup', function(el) {
+      e.target.addEventListener('mouseup', function (el) {
         e.target.removeEventListener('mousemove', that.moving);
       })
     },
@@ -214,13 +216,6 @@ export default {
     },
     confirm(nlin) {
       this.tlin = nlin
-      this.t('')
-      this.t('')
-      this.t('')
-      this.t('indone------------------------------')
-      this.t(this.filelist, 'filelist')
-      this.t(this.files, 'files')
-      this.t(this.fileshow, 'fileshow')
       for (var i in this.files) {
         this.refreshmax += 1
       }
@@ -239,14 +234,12 @@ export default {
     toUpload(i) {
       var formData = new FormData()
       formData.append('file', this.files[i])
-      this.t('upload')
-      this.t(i, 'upload')
       var uploadProgress = (pEvent) => {
         this.fileup[i] = Number(
           ((pEvent.loaded / pEvent.total) * 95).toFixed(2)
         )
       }
-      req.upload(this.$store.state.conf, 'fupload', formData, uploadProgress).then((res) => {
+      req.upload('fupload', formData, uploadProgress).then((res) => {
         if (res.status) {
           if (res.data !== 'mis') {
             this.filelist[i] = res.data
@@ -261,20 +254,15 @@ export default {
     },
     toDel(i) {
       var file = this.filelist[i]
-      this.t('del--')
-      this.t(i, 'del')
-      this.t(file, 'del')
       if (file === undefined) {
-        this.t('nofile', 'del')
         this.refreshfin += 1
         this.filelist[i] = ''
         this.checkfin()
         return
       }
-      req.post('fdel', {del: file}).then((res) => {
+      req.post('fdel', { del: file }).then((res) => {
         if (res.status) {
           if (res.data === 'done') {
-            this.t('done', 'del')
             this.refreshfin += 1
             this.filelist[i] = ''
             this.checkfin()
@@ -285,29 +273,22 @@ export default {
       })
     },
     checkfin() {
-      this.t('isfin-----------------------------')
-      this.t(this.refreshfin + '--' + this.refreshmax)
       if (this.refreshfin === this.refreshmax) {
         this.saveNote()
       }
     },
     saveNote() {
-      this.t('saving file')
-      this.t(this.filelist, 'save1')
       for (var i in this.filelist) {
         while (this.filelist[i] === '') {
           this.filelist.splice(i, 1)
         }
       }
-      this.t(this.filelist, 'save2')
       this.flin.file = this.filelist.join(',')
-      this.t(this.flin.file, 'save3')
       var cmd = 'save'
       if (this.filefrom === 'note') {
         cmd = 'nsave'
       }
       req.post(cmd, this.flin).then((res) => {
-        this.t('save back')
         this.$bus.emit('editalldone', this.tlin)
       })
     },
