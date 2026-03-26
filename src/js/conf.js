@@ -51,7 +51,7 @@ conf.checkapi = function(ip, url, win) {
     }
   }).catch((res) => {
     // console.log(res)
-    // console.log('api check error 0')
+    // console.log('api check error :' + ip)
   })
 }
 conf.setconfig = function(win, data) {
