@@ -33,6 +33,7 @@
 <script>
 import req from '../../js/req';
 import file from '../File';
+import 'highlight.js/styles/a11y-dark.css'
 export default {
   name: 'edit',
   components: {
@@ -63,8 +64,9 @@ export default {
       this.toMarkdown(txt)
     },
     toMarkdown(txt) {
-      var mdi = require('markdown-it')()
+      var mdi = require('markdown-it')().use(require('markdown-it-highlightjs'))
       this.renderedMarkdown = mdi.render(txt);
+      console.log(this.renderedMarkdown)
     },
     replaceMarkdownUrl(to) {
       const t = '**--==--**'
@@ -230,7 +232,7 @@ export default {
   width 100%
   height 100%
   position absolute
-  background black
+  background black !important
 .showpart
   position relative
   border-bottom solid 1px red
