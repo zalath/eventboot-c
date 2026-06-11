@@ -162,4 +162,11 @@ button {
     color: white;
   }
 }
+.divider {
+  clear both
+  height 1px
+  width 90%
+  background-color red
+  margin 30px auto
+}
 </style>

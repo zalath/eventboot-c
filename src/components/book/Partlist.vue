@@ -8,7 +8,17 @@
       <!-- edit relationType -->
     </div>
     <div v-show="isshow">
-      <Part v-for="(partid,i) in partlist" :key="i" :partid="partid" :bookid="book.id" @openOne="openOne(partid)" ></Part>
+      <Part v-for="(partid, i) in partlist"
+        :key="partid"
+        :partid="partid"
+        :bookid="book.id"
+        :ind = i
+        :zindex=partlistzind[i]
+        @openOne="openOne"
+        @closeOne="closeOne"
+        @setzindex="setzindex"
+        @minimize="isshow=!isshow"
+      ></Part>
     </div>
     <Bookrelation v-if="isshowrelations" :book="book"></Bookrelation>
   </div>
@@ -16,9 +26,9 @@
 
 <script>
 import { mapState } from 'vuex/dist/vuex.cjs.js'
-import Bookrelation from './Bookrelation.vue'
-import req from '../../js/req.js'
+import Bookrelation from './Relation.vue'
 import Part from './Part.vue'
+import req from '../../js/req.js'
 import data from '../../js/data.js'
 
 export default {
@@ -29,10 +39,12 @@ export default {
   data() {
     return {
       partlist: [],
+      partlistzind: [],
       istoggle: false,
       isshow: false,
       isshowbtns: false,
-      isshowrelations: false
+      isshowrelations: false,
+      zmax: 0
     }
   },
   created() {
@@ -46,9 +58,16 @@ export default {
     async openBook() {
       if (!this.istoggle) {
         this.istoggle = true;
-        await this.loadrelation()
-        await this.loadbook()
+        try {
+          await Promise.all([
+            this.loadrelation(),
+            this.loadbook()
+          ])
+        } catch (e) {
+          console.log(e)
+        }
         this.partlist.push(this.book.id)
+        this.partlistzind.push(this.partlist.length)
         this.isshow = !this.isshow;
       } else {
         this.isshow = !this.isshow;
@@ -69,7 +88,24 @@ export default {
       }
     },
     openOne(partid) {
-      this.partlist.push(partid);
+      const index = this.partlist.indexOf(partid);
+      if (index === -1) {
+        this.zmax++
+        this.partlist.push(partid)
+        this.partlistzind.push(this.zmax)
+      } else {
+        this.setzindex(index)
+      }
+    },
+    closeOne(ind) {
+      if (ind > -1) {
+        this.partlist.splice(ind, 1);
+        this.partlistzind.splice(ind, 1);
+      }
+    },
+    setzindex(ind) {
+      this.zmax++
+      this.partlistzind[ind] = this.zmax
     }
   },
   components: {

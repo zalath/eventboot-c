@@ -9,12 +9,14 @@ export default createStore({
     keypass: '',
 
     relationtypelist: [],
-    parts: [],
+    parts: {},
 
     isshowconffilelist: false,
     conffilename: '',
 
-    api: ''
+    api: '',
+
+    killRing: ''
   },
   mutations: {
     setConf(st, val) {
@@ -39,37 +41,74 @@ export default createStore({
     },
     // 新创建的part增加进队列
     addParts(state, param) {
-      var temp = state.parts
-      temp[param.id][param.partid] = param.part
-      state.parts = temp
+      state.parts[param.bookid][param.partid] = param.part
     },
-    // 去编辑新的节点
-    toEditPart(state, param) {
-      state.editingpart[param.bookid] = param
-    },
-    // 去编辑新的关系
-    toEditRelation(state, param) {
-      state.editingrelation[param.bookid] = param
+    delPart(state, param) {
+      const newParts = { ...state.parts }
+      const bookParts = { ...newParts[param.bookid] }
+      delete bookParts[param.partid]
+      newParts[param.bookid] = bookParts
+      console.log('newParts', newParts)
+      state.parts = newParts
     },
     // 新创建的关系增加进队列
-    addrelation(state, param) {
-      state.parts[param.id][param.partid].relations.push(param.relation)
+    addRelation(state, param) {
+      if (!state.parts[param.id][param.partid].relations) {
+        state.parts[param.id][param.partid].relations = []
+      }
+      if (!state.parts[param.id][param.partid].relations2) {
+        state.parts[param.id][param.partid].relations2 = []
+      }
+      if (param.type === 2) {
+        state.parts[param.id][param.partid].relations.push(param.relation)
+      } else {
+        if (param.relation.relationid === 2) {
+          state.parts[param.id][param.partid].relations2.push(param.relation)
+        } else {
+          state.parts[param.id][param.partid].relations.push(param.relation)
+        }
+      }
+    },
+    // 删除指定位置的关系
+    delRelation(state, param) {
+      state.parts[param.bookid][param.partid].relations.splice(param.ind, 1)
+    },
+    /* 删除指定节点下的指定关系
+      @param param.bookid 书id
+      @param param.partid 节点id
+      @param param.id 关系id
+     */
+    delRelationById(state, param) {
+      if (!state.parts[param.bookid][param.partid].relations) return
+      var ind = state.parts[param.bookid][param.partid].relations.findIndex(item => item.id === param.id)
+      if (ind === -1) return
+      state.parts[param.bookid][param.partid].relations.splice(ind, 1)
+    },
+    delRelation2ById(state, param) {
+      if (!state.parts[param.bookid][param.partid].relations2) return
+      var ind = state.parts[param.bookid][param.partid].relations2.findIndex(item => item.id === param.id)
+      if (ind === -1) return
+      state.parts[param.bookid][param.partid].relations2.splice(ind, 1)
     },
     // 初始化某个节点的relation列表
     initPartRelation(state, param) {
       state.parts[param.id][param.partid].relations = param.relations
     },
-    // 初始化书籍关系类型
+    initPartRelation2(state, param) {
+      state.parts[param.id][param.partid].relations2 = param.relations
+    },
+    // 初始化书籍关系类型列表
     async initrelationtypelist(state, param) {
       state.relationtypelist[param.id] = param.relations
     },
-    // 添加新的关系到指定书籍中
+
+    // 添加新的关系类型到指定书籍中
     addRelationType(state, param) {
       state.relationtypelist[param.id][param.relation.id] = param.relation
     },
     // 删除关系类型
     deleteRelationType(state, param) {
-      delete state.relationtypelist[param.id][param.relationId]
+      delete state.relationtypelist[param.id][param.relationid]
     },
     setApi(state, val) {
       state.api = val
@@ -83,6 +122,9 @@ export default createStore({
     },
     setConfFileName(state, val) {
       state.conffilename = val
+    },
+    setKillRing(state, val) {
+      state.killRing = val
     }
   },
   getters: {

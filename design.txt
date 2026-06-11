@@ -1,0 +1,36 @@
+书籍节点逻辑
+
+添加节点
+    父级为书籍：仅产生所属关系，不需要选择关系的正反向等内容
+添加关系
+    本身是角色节点：选择已存在的角色节点，选择正反向关系
+    本身是剧情节点：选择已存在的角色节点，产生相关关系
+编辑节点
+    仅编辑自身的文本和资料内容，不操作关系
+
+删除节点
+    在书目页面，删除的是节点本身，要清除所有的相关关系，并删除节点
+    在节点页面，删除的仅是关系
+
+节点区别
+    书籍
+        获取包含关系 {p1=bookid,relationid=1,p2=0}
+                    parts[bookid][r.p2].name
+        获取相关剧情 {p1=bookid,relationid=2,p2=0}
+                    parts[bookid][r.p2].name
+        创建其他节点
+        创建剧情
+    剧情
+        获取相关节点 {p1=partid,relationid=2,p2=0}
+                    parts[partid][r.p2].name
+        -----------
+        创建关系
+    其他节点
+        获取相关节点 {p1=bookid,relationid=0,p2=partid}
+                    parts[bookid][r1.p2].name || parts[bookid][r2.p1].name
+        获取相关剧情 {p1=0,relationid=2,p2=partid}
+                    parts[bookid][r.p1].name
+        创建关系
+
+刷新节点
+    在节点面板增加刷新按钮。刷新当前的面板数据。

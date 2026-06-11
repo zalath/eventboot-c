@@ -1,12 +1,27 @@
 <template>
   <div>
     <div class="loading loadanime1"></div>
-    <div class="loading loadanime2"></div>
+    <div class="loading loadanime2" @click="reloadapi()"></div>
   </div>
 </template>
 <script>
 export default {
-
+  methods: {
+    reloadapi() {
+      this.$ipc.send('reloadapi')
+    },
+    handleKeydown(event) {
+      if (event.key === 'Enter' || event.keyCode === 13) {
+        this.reloadapi()
+      }
+    }
+  },
+  mounted() {
+    window.addEventListener('keydown', this.handleKeydown)
+  },
+  beforeUnmount() {
+    window.removeEventListener('keydown', this.handleKeydown)
+  }
 }
 </script>
 <style lang="stylus" scoped>

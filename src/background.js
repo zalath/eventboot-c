@@ -33,7 +33,6 @@ async function createWindow () {
   globalShortcut.register('Alt+Ctrl+D', () => { console.log('in showing window');win.show() })
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
-
     setTimeout(() => {
       win.loadURL(process.env.WEBPACK_DEV_SERVER_URL)
       // win.webContents.toggleDevTools()

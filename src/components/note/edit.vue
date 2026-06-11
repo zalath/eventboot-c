@@ -66,7 +66,6 @@ export default {
     toMarkdown(txt) {
       var mdi = require('markdown-it')().use(require('markdown-it-highlightjs'))
       this.renderedMarkdown = mdi.render(txt);
-      console.log(this.renderedMarkdown)
     },
     replaceMarkdownUrl(to) {
       const t = '**--==--**'
@@ -92,7 +91,6 @@ export default {
       }
     },
     doedit() {
-      console.log('saving')
       req.post('nsave', this.lin).then((res) => {
         if (res.data === 'done') {
           this.$bus.emit('editdone', this.lin)

@@ -27,3 +27,5 @@ c.json
 #Electron-builder output
 /dist_electron
 path
+
+design

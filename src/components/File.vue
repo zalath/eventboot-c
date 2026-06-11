@@ -20,10 +20,13 @@
     <input type="file" ref="file" class="hide" @change="tempFile($event)" />
     <div :style="'width:' + bigpic.boxwidth + ';height:' + bigpic.boxheight" class="bigpicdisplay" v-if="bigpic.isshow">
       <div class="imgbox">
-        <img @mousedown="zoommove" @mousewheel="zoom"
+        <img @mousedown="zoommove"
+          @mousewheel="zoom"
           :style="'left:' + bigpic.imgleft + 'px;top:' + bigpic.imgtop + 'px;width:' + bigpic.imgwidth + '%;height:' + bigpic.imgheight + '%;'"
-          :src="bigpic.pic" @contextmenu="bigpic.isshow = false; bigpic.imgwidth = 100; bigpic.imgheight = 100"
-          @error="e => { e.target.src = blankimg }">
+          :src="bigpic.pic"
+          @contextmenu="bigpic.isshow = false; bigpic.imgwidth = 100; bigpic.imgheight = 100"
+          @error="e => { e.target.src = blankimg }"
+        />
         <!-- <img @mousedown="zoommove" @mousewheel="zoom" :style="'left:' + bigpic.imgleft + 'px;top:' + bigpic.imgtop + 'px;width:' + bigpic.imgwidth + '%;'" :src="bigpic.pic" @contextmenu="bigpic.isshow=false;bigpic.imgwidth=100;bigpic.imgheight=100" @error="e => { e.target.src = blankimg }"> -->
       </div>
       <pgbar class="middle" v-if="downloadRate > 0 && downloadRate < 100" :now="downloadRate" :h="1.5" />

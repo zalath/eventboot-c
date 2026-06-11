@@ -3,7 +3,7 @@
     <div v-if="isshowbook">
       <div v-for="(v,i) in this.booklist" :key="i">
         <partlist :book="v"></partlist>
-        <div class="divider"></div>
+        <div class="gap"></div>
       </div>
     </div>
     <a  class="clipbtn" @click="isshowbook=!isshowbook">
@@ -32,10 +32,12 @@ export default {
   },
   methods: {
     getbook() {
-      console.log('in getbook')
       req.get('booklist', '').then((res) => {
         this.booklist = res.data
       })
+        .catch((err) => {
+          console.log(err)
+        })
     }
   },
   mounted() {
@@ -49,7 +51,7 @@ export default {
   position fixed
   bottom 1rem
   left 1rem
-.divider
+.gap
   height 1px
   margin 3rem 0
 </style>

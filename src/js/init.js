@@ -49,6 +49,9 @@ init.initipc = function (win, ipc, shell, app) {
       win.webContents.send('nload')
     }
   })
+  ipc.on('reloadapi', function(event) {
+    conf.getapi(win)
+  })
   ipc.on('getconflist', function(event) {
     conf.getconflist(win)
   })

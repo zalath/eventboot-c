@@ -2,14 +2,17 @@
   <div class="relationbox">
     <div>{{ book.name }}</div>
     <div>
-      <div v-for="(relation,i) in relationtypelist" :key="i">
-        {{ relation.name }}
-        &emsp;&lt;-&gt;
-        {{ relation.revname }}
-        <button @click="deleteRelation(relation.id)">删除</button>
+      <div v-for="(relation, i) in relationtypelist" :key="i">
+        <div v-if="relation.id == 1"></div>
+        <div v-else>
+          {{ relation.name }}
+          &emsp;&lt;-&gt;
+          {{ relation.revname }}
+          <button @click="deleteRelation(relation.id)">删除</button>
+        </div>
       </div>
     </div>
-    <div class="clipbtn" @click="isshowNewRelation=true">
+    <div class="clipbtn" @click="isshowNewRelation = true">
       <i class="fa fa-plus"></i>
     </div>
     <div class="newrelationbox" v-show="isshowNewRelation">
@@ -46,7 +49,7 @@ export default {
   },
   async created() {
     if (this.$store.state.relationtypelist[this.book.id] === undefined) {
-      await data.initBookRelation(this.$store, this.book.id)
+      await data.initBookRelationType(this.$store, this.book.id)
     }
     this.relationtypelist = this.$store.state.relationtypelist[this.book.id]
   },
@@ -61,7 +64,7 @@ export default {
       req.post('bookcreaterelationtype', this.relation).then(
         res => {
           if (res.data !== 'mis') {
-            this.$store.commit('addRelationType', {id: this.book.id, relation: res.data})
+            this.$store.commit('addRelationType', { id: this.book.id, relation: res.data })
             this.$bus.emit('popupcheck')
           } else {
             this.$bus.emit('popuperror', '添加失败')
@@ -71,10 +74,10 @@ export default {
       this.isshowNewRelation = false
     },
     deleteRelation(id) {
-      req.post('bookdelrelationtype', {id: id}).then(
+      req.post('bookdelrelationtype', { id: id }).then(
         res => {
           if (res.data === 'done') {
-            this.$store.commit('deleteRelationType', {id: this.book.id, relationId: id})
+            this.$store.commit('deleteRelationType', { id: this.book.id, relationid: id })
             this.$bus.emit('popupcheck')
           } else {
             this.$bus.emit('popuperror', '删除失败')
