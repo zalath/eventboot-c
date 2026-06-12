@@ -1,32 +1,43 @@
 <template>
   <div class="relationbox">
-    <div>{{ book.name }}</div>
-    <div>
-      <div v-for="(relation, i) in relationtypelist" :key="i">
-        <div v-if="relation.id == 1"></div>
-        <div v-else>
-          {{ relation.name }}
-          &emsp;&lt;-&gt;
-          {{ relation.revname }}
-          <button @click="deleteRelation(relation.id)">删除</button>
+    <div class="part-titlebar" v-drag>
+      {{ book.name }}
+      <div class="part-titlebtn" @click="close">
+        <i class="fa fa-times"></i>
+      </div>
+    </div>
+    <div class="content">
+      <br/>
+      <div class="flex" v-for="(relation, i) in relationtypelist" :key="i">
+        <div class="t names">{{ relation.name }}&emsp;&lt;-&gt;&emsp;{{ relation.revname }}</div>
+        <div class="t">
+          <div class="clipbtn" @click="deleteRelation(relation.id)"><i class="fa fa-times"></i></div>
+          <div class="clipbtn" @click="toEditRelation(i)"><i class="fa fa-pencil"></i></div>
         </div>
       </div>
+      <br/>
     </div>
-    <div class="clipbtn" @click="isshowNewRelation = true">
-      <i class="fa fa-plus"></i>
+    <div class="part-btns">
+      <div class="clipbtn" @click="toNewRelation">
+        <i class="fa fa-plus"></i>
+      </div>
     </div>
-    <div class="newrelationbox" v-show="isshowNewRelation">
-      <div>
-        name:
-        <input v-model="relation.name" />
-      </div>
-      <div>
-        revname:
-        <input v-model="relation.revname" />
-      </div>
-      <div>
-        <button @click="isshowNewRelation = !isshowNewRelation">取消</button>
-        <button @click="comfirmNewRelation">确定</button>
+    <div class="newrelationbox" v-show="isshowEditRelation" @contextmenu="isshowEditRelation=false">
+      <div class="detail">
+        <div>
+          name:
+          <textarea class="part-input" v-model="relation.name" ></textarea>
+        </div>
+        <div>
+          revname:
+          <textarea class="part-input" v-model="relation.revname" ></textarea>
+        </div>
+        <br/>
+        <div>
+          <div class="clipbtn" @click="isshowEditRelation = !isshowEditRelation">取消</div>
+          <div class="clipbtn" v-if="relation.id === undefined" @click="comfirmNewRelation">确定</div>
+          <div class="clipbtn" v-else @click="editRelation">更新</div>
+        </div>
       </div>
     </div>
   </div>
@@ -34,6 +45,7 @@
 <script>
 import req from '../../js/req'
 import data from '../../js/data'
+import move from '../../js/move';
 
 export default {
   name: 'Bookrelation',
@@ -42,7 +54,7 @@ export default {
   },
   data() {
     return {
-      isshowNewRelation: false,
+      isshowEditRelation: false,
       relation: {},
       relationtypelist: []
     }
@@ -54,9 +66,12 @@ export default {
     this.relationtypelist = this.$store.state.relationtypelist[this.book.id]
   },
   methods: {
+    toNewRelation() {
+      this.relation = {}
+      this.isshowEditRelation = true
+    },
     comfirmNewRelation() {
       this.relation.bookid = this.book.id
-      console.log(this.relation)
       if (this.relation.name === '' || this.relation.revname === '') {
         this.$bus.emit('popuperror', '请输入完整信息')
         return
@@ -64,14 +79,14 @@ export default {
       req.post('bookcreaterelationtype', this.relation).then(
         res => {
           if (res.data !== 'mis') {
-            this.$store.commit('addRelationType', { id: this.book.id, relation: res.data })
+            this.$store.commit('updateRelationType', { id: this.book.id, relation: res.data })
             this.$bus.emit('popupcheck')
           } else {
             this.$bus.emit('popuperror', '添加失败')
           }
         }
       )
-      this.isshowNewRelation = false
+      this.isshowEditRelation = false
     },
     deleteRelation(id) {
       req.post('bookdelrelationtype', { id: id }).then(
@@ -85,21 +100,83 @@ export default {
         }
       )
     },
-    editRelation(id) {
-      // TODO 编辑关系，后续实现
+    toEditRelation(i) {
+      this.relation = this.relationtypelist[i]
+      this.isshowEditRelation = true
+    },
+    editRelation() {
+      if (this.relation.name === '' || this.relation.revname === '') {
+        this.$bus.emit('popuperror', '请输入完整信息')
+        return
+      }
+      req.post('bookupdaterelationtype', this.relation).then(
+        res => {
+          if (res.data !== 'mis') {
+            this.$store.commit('updateRelationType', { id: this.book.id, relation: this.relation })
+            this.$bus.emit('popupcheck')
+          } else {
+            this.$bus.emit('popuperror', '修改失败')
+          }
+        }
+      )
+      this.isshowEditRelation = false
+    },
+    close() {
+      this.$emit('close')
+    }
+  },
+  directives: {
+    drag(el, binding) {
+      el.onmousedown = function (e) {
+        var elv = el
+        var ev = binding.instance
+        el = el.parentNode
+        move.draging(el, ev, e, binding, 0, 'fixed', true)
+        el = elv
+      }
     }
   }
 }
 </script>
 <style lang="stylus" scoped>
 .relationbox
-  width 50vw
-  height 50vh
+  width 60vw
+  height 40vh
   position fixed
   top 50%
   left 50%
   transform translate(-50%, -50%)
   border solid 1px red
   background-color black
+  display flex
+  flex-direction column
+.content
+  overflow-y auto
+.flex
+  display flex
+  text-align center
+  align-items center
+  width 100%
+  margin-top 5px
+  .t
+    flex 1
+  &:hover
+    .names
+      border-bottom solid 1px red
+.names
+  height 100%
+.newrelationbox
+  width 100%
+  position fixed
+  top 50%
+  left 50%
+  transform translate(-50%, -50%)
+  background-color black
+  border solid 1px red
+  .detail
+    margin auto
+    padding 40px 20px
+    display flex
 </style>
+<style lang="stylus" src='../../css/bookpart.styl' scoped></style>
 <style lang="stylus" src='../../css/cyber.styl' scoped></style>

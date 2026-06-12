@@ -1,8 +1,8 @@
 <template>
   <div class="part" ref="partContainer" @click.stop="setzindex" :style="'z-index:' + zindex" v-if="show">
-    <div class="titlebar" v-drag>
+    <div class="part-titlebar" v-drag>
       {{ part.id + ' - ' + part.name }}
-      <div class="titlebtn" @click="closePart">
+      <div class="part-titlebtn" @click="closePart">
         <i v-if="part.type !== 0" class="fa fa-times"></i>
         <i v-else class="fa fa-minus"></i>
       </div>
@@ -14,9 +14,9 @@
         </div>
         <div class="info part-txt">
           <div class="part-space"></div>
-          <div><span class="part-input" disabled rows="2" placeholder="NAME">{{part.name}}</span></div>
+          <div><span class="part-input" disabled rows="2" placeholder="NAME" @contextmenu="toEditPart('edit',1)">{{part.name}}</span></div>
           <div class="part-space"></div>
-          <div><span class="part-input" disabled rows="2" placeholder="AGE">{{part.age}}</span></div>
+          <div><span class="part-input" disabled rows="2" placeholder="AGE" @contextmenu="toEditPart('edit',1)">{{part.age}}</span></div>
         </div>
       </div>
       <div class="divider"></div>
@@ -24,8 +24,8 @@
         <div class="partline" v-if="part.type === 2">
           <span @click.stop="openPart(bookid, 0)">{{ partName({p2: bookid}) }}</span>
         </div>
-        <div class="partline" v-for="(r1, i) in parts[bookid][partid].relations" :key="i">
-          <span @click.stop="openPart(r1.p1, r1.p2)">{{ partName(r1) }} {{ partRelation(r1) }}</span>
+        <div class="partline" :class="isOpen(r1)" v-for="(r1, i) in parts[bookid][partid].relations" :key="i">
+          <span @click.stop="openPart(r1.p1, r1.p2)">{{ partName(r1) }}<i style="font-size:12px;">{{ partRelation(r1) }}</i></span>
           <span v-if="!(part.type !== 0 && r1.p1 === bookid)" class="delbtn" @click.stop="partDelete(r1, i)">
             <i class="fa fa-times"></i>
           </span>
@@ -39,9 +39,9 @@
           <i class="fa fa-link"></i>
         </div>
       </div>
-      <div v-if="parts[bookid][partid].relations2 && parts[bookid][partid].relations2.length > 0" class="divider"></div>
-      <div v-if="parts[bookid][partid].relations2 && parts[bookid][partid].relations2.length > 0"  class="partlist">
-        <div class="partline" v-for="(r2, j) in parts[bookid][partid].relations2" :key="j" @click.stop="openPart(r2.p1, r2.p2)">
+      <div v-if="isShowRelation2" class="divider"></div>
+      <div v-if="isShowRelation2"  class="partlist">
+        <div class="partline" :class="isOpen(r2)" v-for="(r2, j) in parts[bookid][partid].relations2" :key="j" @click.stop="openPart(r2.p1, r2.p2)">
           {{ partName(r2) }}
           <span v-if="part.type === 0" class="delbtn" @click.stop="partDelete(r2, i)">
             <i class="fa fa-times"></i>
@@ -53,7 +53,7 @@
         </div>
       </div>
       <div class="divider"></div>
-      <div class="part-desc" v-html="renderedMarkdown"></div>
+      <div class="part-desc" v-html="renderedMarkdown" @contextmenu="toEditPart('edit',1)"></div>
       <div class="part-btns">
         <div class="clipbtn" @click="toEditPart('edit', 1)"><i class="fa fa-pencil"></i></div>
         <div class="clipbtn" @click="show=false;show=true;"><i class="fa fa-refresh"></i></div>
@@ -70,7 +70,6 @@
     </Relationedit>
   </div>
 </template>
-
 <script>
 import { mapState } from 'vuex/dist/vuex.cjs.js';
 import req from '../../js/req';
@@ -80,7 +79,6 @@ import move from '../../js/move';
 import data from '../../js/data'
 import defaultpic from '../../assets/defaultpic.png'
 import mdi from '../../js/markdown.js'
-
 export default {
   name: 'Part',
   props: {
@@ -146,7 +144,6 @@ export default {
   },
   methods: {
     openPart(p1, p2) {
-      console.log('call open')
       var id = p1
       if (p1 === this.partid) id = p2
       this.$emit('openOne', id)
@@ -162,7 +159,6 @@ export default {
       this.$emit('setzindex', this.ind)
     },
     toAddRelation() {
-      console.log('call add relation')
       this.$refs.relationedit.toggleShow(this.bookid, this.partid)
     },
     toEditPart(type, partType) {
@@ -186,6 +182,9 @@ export default {
     partRelation(r1) {
       if (r1.relationid === 1 || r1.relationid === 2) {
         return ''
+      }
+      if (r1.relationid === 0) {
+        return '？？'
       }
       var relation = this.relationtypelist[this.bookid][r1.relationid]
       if (this.part.id === r1.p1) {
@@ -220,45 +219,36 @@ export default {
     startResize(e) {
       e.preventDefault();
       e.stopPropagation();
-
       this.isResizing = true;
       this.startX = e.clientX;
       this.startY = e.clientY;
-
       // 获取当前容器的初始宽高
       const container = this.$refs.partContainer;
       if (container) {
         this.startWidth = container.offsetWidth;
         this.startHeight = container.offsetHeight;
-
         // 绑定全局移动和松开事件，防止鼠标移出按钮区域后失效
         document.addEventListener('mousemove', this.doResize);
         document.addEventListener('mouseup', this.stopResize);
       }
     },
-
     /**
      * 执行调整大小
      */
     doResize(e) {
       if (!this.isResizing) return;
-
       const container = this.$refs.partContainer;
       if (!container) return;
-
       // 计算鼠标移动的距离
       const deltaX = e.clientX - this.startX;
       const deltaY = e.clientY - this.startY;
-
       // 计算新宽高 (最小宽度/高度限制，例如 200px)
       const newWidth = Math.max(200, this.startWidth + deltaX);
       const newHeight = Math.max(200, this.startHeight + deltaY);
-
       // 应用新样式
       container.style.width = `${newWidth}px`;
       container.style.height = `${newHeight}px`;
     },
-
     /**
      * 停止调整大小
      */
@@ -267,6 +257,13 @@ export default {
       // 移除全局监听器
       document.removeEventListener('mousemove', this.doResize);
       document.removeEventListener('mouseup', this.stopResize);
+    },
+    isOpen(r) {
+      const id = r.p1 === this.partid ? r.p2 : r.p1
+      if (this.parts[this.bookid][id].isopen) {
+        return 'bordered'
+      }
+      return ''
     }
   },
   components: {
@@ -280,6 +277,9 @@ export default {
     }),
     renderedMarkdown: function () {
       return mdi.render(this.part.desc)
+    },
+    isShowRelation2: function () {
+      return this.parts[this.bookid][this.partid].relations2 && this.parts[this.bookid][this.partid].relations2.length > 0
     }
   },
   directives: {
@@ -313,25 +313,6 @@ export default {
   display flex
   flex-direction column
   overflow hidden
-.titlebar
-  height 30px
-  width 100%
-  /* 3. 固定高度，不伸缩 */
-  flex-shrink 0
-  text-align center
-  cursor pointer
-  background-color red
-  color white
-  user-select none
-  line-height 30px
-  z-index 10
-.titlebtn
-  float right
-  width 30px
-  line-height 30px
-  &:hover
-    background-color white
-    color red
 .content
   padding 0 4%
   flex-grow 1
@@ -345,9 +326,13 @@ export default {
   display flex
   cursor pointer
   padding 5px
+  .delbtn
+    visibility hidden
   &:hover
     background-color red
     color white
+    .delbtn
+      visibility visible
 .clipbtn
   float right !important
 .resizeBtn
@@ -372,6 +357,10 @@ export default {
   img
     max-width 100%
     object-fit contain
+.bordered
+  border solid 1px red
+  background-color rgba(255, 0, 0, 0.3)
+  color white
 </style>
 <style lang="stylus" src='../../css/bookpart.styl' scoped></style>
 <style lang="stylus" src='../../css/cyber.styl' scoped>

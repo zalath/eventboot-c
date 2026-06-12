@@ -1,5 +1,5 @@
 <template>
-  <div v-if="show" class="relationpad">
+  <div v-if="show" class="relationpad" @contextmenu="toggleShow()">
     <div class="relationedit">
       <div class="">
         <div class="flex">
@@ -24,10 +24,10 @@
         </div>
       </div>
     </div>
-    <div v-if="showrelation" class="pad">
+    <div v-if="showrelation" class="pad" @contextmenu="showrelation=false">
       <div class="paditem clipbtn" v-for="r in relationtypelist[bookid]" :key="r.id" @click="relation=r;showrelation=false">{{ r.name}}-{{ r.revname }}</div>
     </div>
-    <div v-if="showrole" class="pad">
+    <div v-if="showrole" class="pad" @contextmenu="showrole=false">
       <div class="paditem clipbtn" v-for="r in options" :key="r.id" @click="to=r;showrole=false">{{ r.name }}</div>
     </div>
   </div>

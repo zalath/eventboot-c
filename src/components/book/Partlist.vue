@@ -3,9 +3,19 @@
     <div class="clipbtn" @click="openBook()" style="text-align: center;">
       {{ book.name }}
     </div>
-    <div class="clipbtn" v-show="isshowbtns" title="关系" @click="isshowrelations=!isshowrelations">
+    <div class="clipbtn" v-show="isshowbtns" title="关系" @click="isshowrelations=islock?isshowrelations:!isshowrelations">
       <i class="fa fa-link"></i>
-      <!-- edit relationType -->
+    </div>
+    <div class="clipbtn" v-show="isshowbtns" @click="lock">
+      <i v-if="islock" class="fa fa-lock"></i>
+      <i v-else class="fa fa-unlock"></i>
+    </div>
+    <div class="clipbtn" v-show="isshowbtns" v-if="isshowUnlockPad">
+      <!-- <span>{{ passSource }}</span> -->
+      <input v-model="pass" type="password"/>
+      <span @click="unlock">
+        <i class="fa fa-check"></i>
+      </span>
     </div>
     <div v-show="isshow">
       <Part v-for="(partid, i) in partlist"
@@ -20,7 +30,7 @@
         @minimize="isshow=!isshow"
       ></Part>
     </div>
-    <Bookrelation v-if="isshowrelations" :book="book"></Bookrelation>
+    <Bookrelation v-if="isshowrelations" :book="book" @close="isshowrelations=false"></Bookrelation>
   </div>
 </template>
 
@@ -38,6 +48,11 @@ export default {
   },
   data() {
     return {
+      passSource: '',
+      pass: '',
+      isshowUnlockPad: false,
+      islock: false,
+
       partlist: [],
       partlistzind: [],
       istoggle: false,
@@ -47,16 +62,38 @@ export default {
       zmax: 0
     }
   },
-  created() {
-  },
-  mounted() {
-  },
   methods: {
+    lock() {
+      if (!this.islock) {
+        this.islock = true
+        this.isshowrelations = false
+        this.isshow = false
+        this.partlist = []
+        this.partlistzind = []
+        this.istoggle = false
+      } else {
+        this.showUnlockPad()
+      }
+    },
+    showUnlockPad() {
+      this.passSource = 'saw'
+      this.isshowUnlockPad = true
+    },
+    unlock() {
+      if (this.pass === this.passSource) {
+        this.islock = false
+        this.isshowUnlockPad = false
+      }
+    },
     togglebtns(isshow) {
       this.isshowbtns = isshow;
+      this.isshowUnlockPad = false
     },
     async openBook() {
-      if (!this.istoggle) {
+      if (this.islock) {
+        return
+      }
+      if (this.istoggle === false) {
         this.istoggle = true;
         try {
           await Promise.all([
@@ -92,6 +129,7 @@ export default {
       if (index === -1) {
         this.zmax++
         this.partlist.push(partid)
+        this.parts[this.book.id][partid].isopen = true
         this.partlistzind.push(this.zmax)
       } else {
         this.setzindex(index)
@@ -99,6 +137,7 @@ export default {
     },
     closeOne(ind) {
       if (ind > -1) {
+        this.parts[this.book.id][this.partlist[ind]].isopen = false
         this.partlist.splice(ind, 1);
         this.partlistzind.splice(ind, 1);
       }

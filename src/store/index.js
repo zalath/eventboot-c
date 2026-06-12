@@ -101,14 +101,13 @@ export default createStore({
     async initrelationtypelist(state, param) {
       state.relationtypelist[param.id] = param.relations
     },
-
-    // 添加新的关系类型到指定书籍中
-    addRelationType(state, param) {
-      state.relationtypelist[param.id][param.relation.id] = param.relation
-    },
     // 删除关系类型
     deleteRelationType(state, param) {
       delete state.relationtypelist[param.id][param.relationid]
+    },
+    // 更新关系类型
+    updateRelationType(state, param) {
+      state.relationtypelist[param.id][param.relation.id] = param.relation
     },
     setApi(state, val) {
       state.api = val

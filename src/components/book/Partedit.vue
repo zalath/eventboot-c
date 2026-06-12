@@ -1,7 +1,7 @@
 <template>
   <div v-if="show" class="partedit">
     <div class="part-edit">
-      <div class="part-titlebar"></div>
+      <div class="part-titlebarSpace"></div>
       <div class="part-infobar">
         <div class="info part-pic">
           <img :src="picdisplay?picdisplay:defaultpic" @click.stop="$refs.file.click()"/>
