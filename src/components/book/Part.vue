@@ -1,5 +1,5 @@
 <template>
-  <div class="part" ref="partContainer" @click.stop="setzindex" :style="'z-index:' + zindex" v-if="show">
+  <div class="part" :class="bookid===partid?'book':'parts'" ref="partContainer" @click.stop="setzindex" :style="'z-index:' + zindex" v-if="show">
     <div class="part-titlebar" v-drag>
       {{ part.id + ' - ' + part.name }}
       <div class="part-titlebtn" @click="closePart">
@@ -53,7 +53,14 @@
         </div>
       </div>
       <div class="divider"></div>
-      <div class="part-desc" v-html="renderedMarkdown" @contextmenu="toEditPart('edit',1)"></div>
+      <div class="part-desc"
+        @contextmenu="toEditPart('edit',1)"
+        @mouseenter="isDescHovered = true"
+        @mouseleave="isDescHovered = false"
+      >
+        <div v-show="isDescHovered" v-html="markdownHtml"></div>
+        <div v-show="!isDescHovered" class="skeleton" v-html="markdownSkeleton"></div>
+      </div>
       <div class="part-btns">
         <div class="clipbtn" @click="toEditPart('edit', 1)"><i class="fa fa-pencil"></i></div>
         <div class="clipbtn" @click="show=false;show=true;"><i class="fa fa-refresh"></i></div>
@@ -98,7 +105,10 @@ export default {
       startY: 0,
       startWidth: 0,
       startHeight: 0,
-      zoomPic: false
+      zoomPic: false,
+      isDescHovered: false,
+      markdownHtml: '',
+      markdownSkeleton: ''
     }
   },
   created() {
@@ -266,6 +276,14 @@ export default {
       return ''
     }
   },
+  watch: {
+    'part.desc': function (newValue, oldValue) {
+      if (newValue !== oldValue) {
+        this.markdownHtml = mdi.render(newValue)
+        this.markdownSkeleton = this.markdownHtml.replace(/[\u4e00-\u9fa5\u3000-\u303f\uff00-\uffef]/g, '■')
+      }
+    }
+  },
   components: {
     Partedit,
     Relationedit
@@ -307,12 +325,15 @@ export default {
   height 50%
   top 50%
   left 50%
-  transform translate(-50%, -50%)
   border solid 1px red
   background-color black
   display flex
   flex-direction column
   overflow hidden
+.book
+  transform translate(-90%, -70%)
+.parts
+  transform translate(-50%, -50%)
 .content
   padding 0 4%
   flex-grow 1

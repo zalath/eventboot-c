@@ -96,7 +96,6 @@ export default {
         var formData = new FormData();
         formData.append('del', this.editpart.pic);
         formData.append('file', this.$refs.file.files[0]);
-        console.log(formData)
         await req.upload('fupload', formData, {}).then(res => {
           this.editpart.pic = res.data
         })
@@ -131,8 +130,7 @@ export default {
         req.post('bookupdatepart', this.editpart).then(res => {
           if (res.data === 'done') {
             this.parts[this.bookid][this.partid] = this.editpart
-            this.show = false
-            this.$emit('close')
+            this.$bus.emit('popupcheck')
           } else {
             this.$bus.emit('popuperror', '修改失败')
           }
@@ -149,7 +147,6 @@ export default {
       if (this.edittype === 'edit') {
         this.editpart = this.parts[this.bookid][this.partid]
         this.picdisplay = this.editpart.pic !== '' ? this.$store.state.api + this.editpart.pic : ''
-        console.log('edit loaded', this.editpart)
       } else {
         this.editpart = {
           pic: '',

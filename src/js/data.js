@@ -2,6 +2,7 @@ import req from './req'
 
 export default {
   initBookRelationType: async function (store, bookid) {
+    if (store.state.relationtypelist[bookid] !== undefined) return
     const res = await req.post('bookgetrelationtype', { bookid: bookid })
     if (res !== 'mis') {
       if (res.data == null) return;
@@ -35,5 +36,17 @@ export default {
         }
       }
     )
+  },
+  initBookParts: async function (store, book) {
+    if (store.state.parts[book.id] !== undefined) return
+    const res = await req.post('bookparts', { id: book.id })
+    if (res !== 'mis' && res.data != null) {
+      var pt = {}
+      res.data.forEach(p => {
+        pt[p.id] = p
+      })
+      pt[book.id] = book
+      store.commit('initParts', {id: book.id, partlist: pt})
+    }
   }
 }

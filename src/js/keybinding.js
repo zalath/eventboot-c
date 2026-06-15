@@ -1,11 +1,15 @@
 // src/js/keybinding.js
+let isListening = false;
 export default {
   mounted() {
-    // 使用 capture: true 确保在大多数其他监听器之前捕获事件
-    window.addEventListener('keydown', this.handleEmacsMove, true);
+    if (!isListening) {
+      window.addEventListener('keydown', this.handleEmacsMove, true);
+      isListening = true;
+    }
   },
   beforeDestroy() {
     window.removeEventListener('keydown', this.handleEmacsMove, true);
+    isListening = false
   },
   methods: {
     /**
@@ -71,7 +75,9 @@ export default {
       const newPos = pos + direction;
       // 边界检查
       if (newPos >= 0 && newPos <= el.value.length) {
-        el.setSelectionRange(newPos, newPos);
+        // el.setSelectionRange(newPos, newPos);
+        el.selectionStart = newPos;
+        el.selectionEnd = newPos;
       }
     },
     /**
@@ -107,7 +113,9 @@ export default {
       if (newPos > targetLineEnd) {
         newPos = targetLineEnd;
       }
-      el.setSelectionRange(newPos, newPos);
+      // el.setSelectionRange(newPos, newPos);
+      el.selectionStart = newPos;
+      el.selectionEnd = newPos;
     },
     /**
      * 移动到当前行行首 (Ctrl+A)
