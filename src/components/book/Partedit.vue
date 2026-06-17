@@ -1,7 +1,7 @@
 <template>
   <div v-if="show" class="partedit">
     <div class="part-edit">
-      <div class="part-titlebarSpace"></div>
+      <div class="part-space"></div>
       <div class="part-infobar">
         <div class="info part-pic">
           <img :src="picdisplay?picdisplay:defaultpic" @click.stop="$refs.file.click()"/>
@@ -13,17 +13,19 @@
           <textarea class="part-input" rows="2" placeholder="AGE" v-model="editpart.age"></textarea>
         </div>
       </div>
-      <div class="part-desc">
+      <div class="part-space"></div>
+      <div class="desc">
         <textarea
           class="part-input"
           :style="'font-size:'+contentFontSize+'px'"
-          rows="50"
           placeholder="DESC"
           v-model="editpart.desc"
           @keydown.tab="handleTab"
           >
         </textarea>
       </div>
+      <div class="part-space"></div>
+      <div class="part-space"></div>
       <div class="part-btns">
         <div class="clipbtn" @click="fontsize(2)">
           <i class="fa fa-plus"></i>
@@ -172,12 +174,23 @@ export default {
   width 100%
   height 100%
   background-color black
-  overflow-x hidden
-  overflow-y scroll
 .part-edit
+  width 100%
+  height 100%
   display flex
   flex-direction column
-  padding 0 5%
+  padding 10px
+  box-sizing border-box
+.desc
+  flex: 1
+  display flex
+  flex-direction column
+  min-height 0
+  .part-input
+    flex 1 !important
+    width 100% !important
+    resize none !important
+    box-sizing border-box !important
 </style>
 <style lang="stylus" src='../../css/bookpart.styl' scoped></style>
 <style lang="stylus" src='../../css/cyber.styl' scoped></style>

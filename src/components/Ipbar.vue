@@ -10,17 +10,9 @@
 </template>
 
 <script>
+import { mapState } from 'vuex/dist/vuex.cjs.js';
 export default {
   name: 'ipbar',
-  data: function() {
-    return {
-      ipval: ''
-    }
-  },
-  created: function() {
-    this.resetipval()
-    this.$ipc.on('taskreload', this.resetipval)
-  },
   methods: {
     copy() {
       navigator.clipboard.writeText(this.ipval);
@@ -28,13 +20,13 @@ export default {
     setapi() {
       this.$bus.emit('showsetapi')
     },
-    resetipval() {
-      this.ipval = this.$store.state.api
-    },
     toggleknote() {
       this.$bus.emit('showknote')
     }
-  }
+  },
+  computed: mapState({
+    ipval: state => state.api
+  })
 }
 </script>
 <style lang="stylus" scoped>

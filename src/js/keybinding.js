@@ -28,22 +28,6 @@ export default {
       const key = e.key.toLowerCase();
       let handled = false;
       switch (key) {
-      case 'p': // Up
-        this.moveCursorVertical(target, -1);
-        handled = true;
-        break;
-      case 'n': // Down
-        this.moveCursorVertical(target, 1);
-        handled = true;
-        break;
-      case 'b': // Left
-        this.moveCursorHorizontal(target, -1);
-        handled = true;
-        break;
-      case 'f': // Right
-        this.moveCursorHorizontal(target, 1);
-        handled = true;
-        break;
       case 'a': // Move to beginning of line
         this.moveToLineStart(target);
         handled = true;
@@ -64,67 +48,6 @@ export default {
       if (handled) {
         e.preventDefault();
       }
-    },
-    /**
-     * 水平移动光标 (Left/Right)
-     * @param {HTMLElement} el - textarea/input 元素
-     * @param {Number} direction - -1 为左, 1 为右
-     */
-    moveCursorHorizontal(el, direction) {
-      const pos = el.selectionStart;
-      const newPos = pos + direction;
-      // 边界检查
-      if (newPos >= 0 && newPos <= el.value.length) {
-        // el.setSelectionRange(newPos, newPos);
-        el.selectionStart = newPos;
-        el.selectionEnd = newPos;
-      }
-    },
-    /**
-     * 垂直移动光标 (Up/Down)
-     * @param {HTMLElement} el - textarea/input 元素
-     * @param {Number} direction - -1 为上, 1 为下
-     */
-    moveCursorVertical(el, direction) {
-      const text = el.value;
-      const currentPos = el.selectionStart;
-      const lineStart = text.lastIndexOf('\n', currentPos - 1) + 1;
-      let lineEnd = text.indexOf('\n', currentPos);
-      if (lineEnd === -1) lineEnd = text.length;
-      const colIndex = currentPos - lineStart;
-      let targetLineStart, targetLineEnd;
-
-      const rowCountShow = el.rows
-      const subStr = text.substring(0, currentPos);
-      const matches = subStr.match(/\n/g);
-      const rowCount = matches ? matches.length + 0 : 0;
-      const colHeight = el.style.fontSize.replace('px', '')
-      if (rowCount > rowCountShow / 2) {
-        el.scrollTo({top: (rowCount - rowCountShow / 2 - 1) * colHeight, behavior: 'auto'});
-      }
-      if (direction === -1) { // Up
-        let prevLineBreak = text.lastIndexOf('\n', lineStart - 2);
-        if (prevLineBreak === -1) {
-          prevLineBreak = -1
-        }
-        targetLineStart = prevLineBreak + 1;
-        targetLineEnd = lineStart - 1;
-      } else { // Down
-        const nextLineBreak = text.indexOf('\n', lineEnd);
-        if (nextLineBreak === -1) {
-          return;
-        }
-        targetLineStart = nextLineBreak + 1;
-        targetLineEnd = text.indexOf('\n', targetLineStart);
-        if (targetLineEnd === -1) targetLineEnd = text.length;
-      }
-      let newPos = targetLineStart + colIndex;
-      if (newPos > targetLineEnd) {
-        newPos = targetLineEnd;
-      }
-      // el.setSelectionRange(newPos, newPos);
-      el.selectionStart = newPos;
-      el.selectionEnd = newPos;
     },
     /**
      * 移动到当前行行首 (Ctrl+A)

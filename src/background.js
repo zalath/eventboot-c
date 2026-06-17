@@ -44,27 +44,46 @@ async function createWindow () {
     // Load the index.html when not in development
     win.loadURL('app://./index.html')
   }
-  // // hot keys send message to view
-  // win.webContents.on('before-input-event', (event, input) => {
-  //   if (input.control && input.key.toLocaleLowerCase() === 't') {
-  //     win.webContents.send('setpage', 1);
-  //   }
-  //   if (input.control && input.key.toLocaleLowerCase() === 'e') {
-  //     win.webContents.send('setpage', 6);
-  //   }
-  //   if (input.control && input.key.toLocaleLowerCase() === 's') {
-  //     win.webContents.send('setpage', 2);
-  //   }
-  //   if (input.control && input.key.toLocaleLowerCase() === 'f') {
-  //     win.webContents.send('setpage', 3);
-  //   }
-  //   if (input.control && input.key.toLocaleLowerCase() === 'q') {
-  //     win.webContents.send('setpage', 4);
-  //   }
-  //   if (input.control && input.key.toLocaleLowerCase() === 'w') {
-  //     win.webContents.send('setpage', 5);
-  //   }
-  // })
+  // hot keys send message to view
+  win.webContents.on('before-input-event', (event, input) => {
+    // if (input.control && input.key.toLocaleLowerCase() === 't') {
+    //   win.webContents.send('setpage', 1);
+    // }
+    if (input.type !== 'keyDown') return;
+
+    if (input.control && input.key.toLocaleLowerCase() === 'p') {
+      event.preventDefault();
+      // 模拟按下 "ArrowUp" (向上箭头)
+      win.webContents.sendInputEvent({
+        type: 'keyDown',
+        keyCode: 'Up' // 或者使用 'ArrowUp'
+      });
+    }
+    if (input.control && input.key.toLocaleLowerCase() === 'n') {
+      event.preventDefault();
+      // 模拟按下 "ArrowUp" (向上箭头)
+      win.webContents.sendInputEvent({
+        type: 'keyDown',
+        keyCode: 'Down' // 或者使用 'ArrowUp'
+      });
+    }
+    if (input.control && input.key.toLocaleLowerCase() === 'b') {
+      event.preventDefault();
+      // 模拟按下 "ArrowUp" (向上箭头)
+      win.webContents.sendInputEvent({
+        type: 'keyDown',
+        keyCode: 'Left' // 或者使用 'ArrowUp'
+      });
+    }
+    if (input.control && input.key.toLocaleLowerCase() === 'f') {
+      event.preventDefault();
+      // 模拟按下 "ArrowUp" (向上箭头)
+      win.webContents.sendInputEvent({
+        type: 'keyDown',
+        keyCode: 'Right' // 或者使用 'ArrowUp'
+      });
+    }
+  })
   win.webContents.on('will-navigate', function(e, url) {
     e.preventDefault();
     require('electron').shell.openExternal(url)

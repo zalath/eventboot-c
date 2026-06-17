@@ -20,7 +20,7 @@
         </div>
       </div>
       <div class="divider"></div>
-      <div class="partlist">
+      <div class="partlist row">
         <div class="partline" v-if="part.type === 2">
           <span @click.stop="openPart(bookid, 0)">{{ partName({p2: bookid}) }}</span>
         </div>
@@ -48,7 +48,7 @@
         </div>
       </div>
       <div v-if="isShowRelation2" class="divider"></div>
-      <div v-if="isShowRelation2"  class="partlist">
+      <div v-if="isShowRelation2"  class="partlist column">
         <div class="partline" :class="isOpen(r2)" v-for="(r2, j) in parts[bookid][partid].relations2" :key="j" v-dragrelto2="j">
           <span v-if="r2.ismoveto" class="delbtn">
             <i class="fa fa-caret-left"></i>
@@ -57,7 +57,7 @@
             <i class="fa fa-navicon"></i>
           </span>
           <span @click.stop="openPart(r2.p1, r2.p2)">{{ partName(r2) }}</span>
-          <span v-if="part.type === 0 && r2.ismoveto" class="delbtn" @click.stop="partDelete(r2, i)">
+          <span v-if="part.type === 0 && !r2.ismoveto" class="delbtn" @click.stop="partDelete(r2, i)">
             <i class="fa fa-times"></i>
           </span>
         </div>
@@ -313,7 +313,7 @@ export default {
     'part.desc': function (newValue, oldValue) {
       if (newValue !== oldValue) {
         this.markdownHtml = mdi.render(newValue)
-        this.markdownSkeleton = this.markdownHtml.replace(/[\u4e00-\u9fa5\u3000-\u303f\uff00-\uffef]/g, '■')
+        this.markdownSkeleton = this.markdownHtml.replace(/[\u4e00-\u9fa5\u3000-\u303f\uff00-\uffef]/g, '文')
       }
     }
   },
@@ -369,7 +369,7 @@ export default {
             if (obj.movis) {
               obj.movto = binding.value
               el.onmouseleave = el.onmouseup = null
-              obj.parts[obj.bookid][obj.partid].relations[binding.value].ismoveto = true
+              obj.parts[obj.bookid][obj.partid].relations[binding.value].ismoveto = false
               obj.moveRelation()
             }
           }
@@ -391,8 +391,8 @@ export default {
             if (obj.movis) {
               obj.movto = binding.value
               el.onmouseleave = el.onmouseup = null
-              obj.parts[obj.bookid][obj.partid].relations2[binding.value].ismoveto = true
-              obj.moveRelation()
+              obj.parts[obj.bookid][obj.partid].relations2[binding.value].ismoveto = false
+              obj.moveRelation2()
             }
           }
         }
