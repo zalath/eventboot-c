@@ -24,9 +24,17 @@
         <div class="partline" v-if="part.type === 2">
           <span @click.stop="openPart(bookid, 0)">{{ partName({p2: bookid}) }}</span>
         </div>
-        <div class="partline" :class="isOpen(r1)" v-for="(r1, i) in parts[bookid][partid].relations" :key="i">
-          <span @click.stop="openPart(r1.p1, r1.p2)">{{ partName(r1) }}<i style="font-size:12px;">{{ partRelation(r1) }}</i></span>
-          <span v-if="!(part.type !== 0 && r1.p1 === bookid)" class="delbtn" @click.stop="partDelete(r1, i)">
+        <div class="partline" :class="isOpen(r1)" v-for="(r1, i) in parts[bookid][partid].relations" :key="i" v-dragrelto="i">
+          <span v-if="r1.ismoveto" class="delbtn">
+            <i class="fa fa-caret-left"></i>
+          </span>
+          <span v-if="!r1.ismoveto" class="delbtn" v-dragrel="i">
+            <i class="fa fa-navicon"></i>
+          </span>
+          <span @click.stop="openPart(r1.p1, r1.p2)">
+            {{ partName(r1) }}<i style="font-size:12px;">{{ partRelation(r1) }}</i>
+          </span>
+          <span v-if="!(part.type !== 0 && r1.p1 === bookid) && !r1.ismoveto" class="delbtn" @click.stop="partDelete(r1, i)">
             <i class="fa fa-times"></i>
           </span>
         </div>
@@ -41,9 +49,15 @@
       </div>
       <div v-if="isShowRelation2" class="divider"></div>
       <div v-if="isShowRelation2"  class="partlist">
-        <div class="partline" :class="isOpen(r2)" v-for="(r2, j) in parts[bookid][partid].relations2" :key="j" @click.stop="openPart(r2.p1, r2.p2)">
-          {{ partName(r2) }}
-          <span v-if="part.type === 0" class="delbtn" @click.stop="partDelete(r2, i)">
+        <div class="partline" :class="isOpen(r2)" v-for="(r2, j) in parts[bookid][partid].relations2" :key="j" v-dragrelto2="j">
+          <span v-if="r2.ismoveto" class="delbtn">
+            <i class="fa fa-caret-left"></i>
+          </span>
+          <span v-if="!r2.ismoveto" class="delbtn" v-dragrel="j">
+            <i class="fa fa-navicon"></i>
+          </span>
+          <span @click.stop="openPart(r2.p1, r2.p2)">{{ partName(r2) }}</span>
+          <span v-if="part.type === 0 && r2.ismoveto" class="delbtn" @click.stop="partDelete(r2, i)">
             <i class="fa fa-times"></i>
           </span>
         </div>
@@ -108,7 +122,10 @@ export default {
       zoomPic: false,
       isDescHovered: false,
       markdownHtml: '',
-      markdownSkeleton: ''
+      markdownSkeleton: '',
+      movis: false,
+      movi: 0,
+      movto: 0
     }
   },
   created() {
@@ -274,6 +291,22 @@ export default {
         return 'bordered'
       }
       return ''
+    },
+    moveRelation() {
+      var ob = this.parts[this.bookid][this.partid].relations
+      this.updateOrder(ob)
+      move.move(this.movi, this.movto, this.parts[this.bookid][this.partid].relations, this.movis)
+    },
+    moveRelation2() {
+      var ob = this.parts[this.bookid][this.partid].relations2
+      this.updateOrder(ob)
+      move.move(this.movi, this.movto, this.parts[this.bookid][this.partid].relations2, this.movis)
+    },
+    updateOrder(ob) {
+      req.post('bookrelationsetorder', {
+        id: ob[this.movi].id,
+        order: ob[this.movto].sort
+      })
     }
   },
   watch: {
@@ -309,6 +342,61 @@ export default {
         move.draging(el, ev, e, binding, 0, 'fixed', true)
         el = elv
       }
+    },
+    dragrel(el, binding) {
+      el.onmousedown = function (e) {
+        var elv = el
+        var ev = binding.instance
+        el = el.parentNode
+        el.style.backgroundColor = 'red'
+        el.style.color = 'white'
+        move.draging(el, ev, e, binding, -30, 'fixed')
+        el = elv
+      }
+    },
+    dragrelto(el, binding) {
+      el.onmouseenter = function (e) {
+        var obj = binding.instance
+        if (obj.movis) {
+          obj.parts[obj.bookid][obj.partid].relations[binding.value].ismoveto = true
+          el.onmouseleave = function () {
+            if (obj.movis) {
+              el.onmouseleave = el.onmouseup = null
+              obj.parts[obj.bookid][obj.partid].relations[binding.value].ismoveto = false
+            }
+          }
+          el.onmouseup = function () {
+            if (obj.movis) {
+              obj.movto = binding.value
+              el.onmouseleave = el.onmouseup = null
+              obj.parts[obj.bookid][obj.partid].relations[binding.value].ismoveto = true
+              obj.moveRelation()
+            }
+          }
+        }
+      }
+    },
+    dragrelto2(el, binding) {
+      el.onmouseenter = function (e) {
+        var obj = binding.instance
+        if (obj.movis) {
+          obj.parts[obj.bookid][obj.partid].relations2[binding.value].ismoveto = true
+          el.onmouseleave = function () {
+            if (obj.movis) {
+              el.onmouseleave = el.onmouseup = null
+              obj.parts[obj.bookid][obj.partid].relations2[binding.value].ismoveto = false
+            }
+          }
+          el.onmouseup = function () {
+            if (obj.movis) {
+              obj.movto = binding.value
+              el.onmouseleave = el.onmouseup = null
+              obj.parts[obj.bookid][obj.partid].relations2[binding.value].ismoveto = true
+              obj.moveRelation()
+            }
+          }
+        }
+      }
     }
   },
   beforeUnmount() {
@@ -342,6 +430,7 @@ export default {
 .partlist
   display flex
   flex-wrap wrap
+  user-select none
   gap 5px
 .partline
   display flex
@@ -349,6 +438,7 @@ export default {
   padding 5px
   .delbtn
     visibility hidden
+    padding 0px 4px
   &:hover
     background-color red
     color white

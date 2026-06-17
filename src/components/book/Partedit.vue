@@ -175,6 +175,8 @@ export default {
   overflow-x hidden
   overflow-y scroll
 .part-edit
+  display flex
+  flex-direction column
   padding 0 5%
 </style>
 <style lang="stylus" src='../../css/bookpart.styl' scoped></style>

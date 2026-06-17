@@ -93,10 +93,19 @@ export default {
       if (lineEnd === -1) lineEnd = text.length;
       const colIndex = currentPos - lineStart;
       let targetLineStart, targetLineEnd;
+
+      const rowCountShow = el.rows
+      const subStr = text.substring(0, currentPos);
+      const matches = subStr.match(/\n/g);
+      const rowCount = matches ? matches.length + 0 : 0;
+      const colHeight = el.style.fontSize.replace('px', '')
+      if (rowCount > rowCountShow / 2) {
+        el.scrollTo({top: (rowCount - rowCountShow / 2 - 1) * colHeight, behavior: 'auto'});
+      }
       if (direction === -1) { // Up
-        const prevLineBreak = text.lastIndexOf('\n', lineStart - 2);
+        let prevLineBreak = text.lastIndexOf('\n', lineStart - 2);
         if (prevLineBreak === -1) {
-          return;
+          prevLineBreak = -1
         }
         targetLineStart = prevLineBreak + 1;
         targetLineEnd = lineStart - 1;
