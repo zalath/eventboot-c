@@ -40,10 +40,6 @@ export default {
         this.killLine(target);
         handled = true;
         break;
-      case 'y': // Yank (paste) from kill ring
-        this.yank(target);
-        handled = true;
-        break;
       }
       if (handled) {
         e.preventDefault();
@@ -55,9 +51,40 @@ export default {
     moveToLineStart(el) {
       const text = el.value;
       const currentPos = el.selectionStart;
-      // 查找当前行前面的最后一个换行符
-      const lineStart = text.lastIndexOf('\n', currentPos - 1) + 1;
-      el.setSelectionRange(lineStart, lineStart);
+
+      // 1. 查找当前行前面的最后一个换行符，确定绝对行首
+      const lastNewLine = text.lastIndexOf('\n', currentPos - 1);
+      const lineStart = lastNewLine + 1;
+
+      // 2. 查找当前行的下一个换行符，确定行尾（用于限制搜索范围）
+      const nextNewLine = text.indexOf('\n', currentPos);
+      const lineEnd = nextNewLine === -1 ? text.length : nextNewLine;
+
+      // 3. 查找从行首开始的第一个非空白字符的位置
+      const lineContent = text.substring(lineStart, lineEnd);
+      const match = lineContent.match(/\S/); // 匹配第一个非空白字符
+      let firstNonSpace = lineStart; // 默认如果没有非空字符，就停在行首
+
+      if (match) {
+        firstNonSpace = lineStart + match.index;
+      }
+
+      // 4. 切换逻辑
+      let newPos = currentPos;
+
+      if (currentPos === lineStart) {
+        // 如果已经在绝对行首，跳转到第一个非空字符
+        newPos = firstNonSpace;
+      } else if (currentPos === firstNonSpace) {
+        // 如果已经在第一个非空字符，跳转回绝对行首
+        newPos = lineStart;
+      } else {
+        // 如果光标在中间或其他位置，第一次按跳转到第一个非空字符（智能行首）
+        // 如果该行全是空格，firstNonSpace 等于 lineStart，也会跳过去
+        newPos = firstNonSpace;
+      }
+
+      el.setSelectionRange(newPos, newPos);
     },
     /**
      * 移动到当前行行尾 (Ctrl+E)
@@ -80,36 +107,14 @@ export default {
         lineEnd = text.length;
       }
       if (currentPos === lineEnd) {
-        return;
+        lineEnd += 1;
+      } else {
+        const killedText = text.substring(currentPos, lineEnd);
+        this.$ipc.send('copy', killedText);
       }
-      const killedText = text.substring(currentPos, lineEnd);
-      this.$store.commit('setKillRing', killedText);
-
       const newText = text.substring(0, currentPos) + text.substring(lineEnd);
       el.value = newText;
       el.setSelectionRange(currentPos, currentPos);
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-    },
-    /**
-     * 粘贴上次删除的内容 (Ctrl+Y)
-     * @param {HTMLElement} el - textarea/input 元素
-     */
-    yank(el) {
-      const text = el.value;
-      const pos = el.selectionStart;
-      const endPos = el.selectionEnd;
-
-      const killedText = this.$store.state.killRing;
-      // 在光标处插入内容
-      const newText = text.substring(0, pos) + killedText + text.substring(endPos);
-
-      el.value = newText;
-
-      // 移动光标到插入内容的末尾
-      const newPos = pos + killedText.length;
-      el.setSelectionRange(newPos, newPos);
-
-      // 触发 input 事件以通知 Vue 或其他监听器值已更改
       el.dispatchEvent(new Event('input', { bubbles: true }));
     }
   }

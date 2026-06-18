@@ -76,6 +76,7 @@
         <div v-show="!isDescHovered" class="skeleton" v-html="markdownSkeleton"></div>
       </div>
       <div class="part-btns">
+        <div class="clipbtn" @click="closePart"><i class="fa fa-times"></i></div>
         <div class="clipbtn" @click="toEditPart('edit', 1)"><i class="fa fa-pencil"></i></div>
         <div class="clipbtn" @click="show=false;show=true;"><i class="fa fa-refresh"></i></div>
       </div>
@@ -313,7 +314,34 @@ export default {
     'part.desc': function (newValue, oldValue) {
       if (newValue !== oldValue) {
         this.markdownHtml = mdi.render(newValue)
-        this.markdownSkeleton = this.markdownHtml.replace(/[\u4e00-\u9fa5\u3000-\u303f\uff00-\uffef]/g, '文')
+
+        const parser = new DOMParser()
+        const doc = parser.parseFromString(this.markdownHtml, 'text/html')
+        // 递归处理节点
+        const processNode = (node) => {
+          if (node.nodeType === Node.TEXT_NODE) {
+            // 如果是文本节点，进行替换
+            const text = node.textContent
+            if (!text.trim()) return // 忽略纯空白节点以保持格式
+
+            let masked = text.replace(/[\u4e00-\u9fa5\u3000-\u303f\uff00-\uffef]/g, '文')
+            masked = masked.replace(/[a-z]/g, 'n')
+            masked = masked.replace(/[A-Z]/g, 'N')
+            masked = masked.replace(/[0-9]/g, '8') // 可选：数字也替换
+
+            node.textContent = masked
+          } else if (node.nodeType === Node.ELEMENT_NODE) {
+            // 如果是元素节点，递归处理子节点
+            // 注意：childNodes 是实时集合，遍历时最好转为数组或倒序，但这里只是读取和修改文本节点，正序即可
+            Array.from(node.childNodes).forEach(processNode)
+          }
+        }
+
+        // 从 body 开始处理
+        processNode(doc.body)
+
+        // 返回处理后的 HTML 内部内容
+        this.markdownSkeleton = doc.body.innerHTML
       }
     }
   },

@@ -14,9 +14,7 @@ export default createStore({
     isshowconffilelist: false,
     conffilename: '',
 
-    api: '',
-
-    killRing: ''
+    api: ''
   },
   mutations: {
     setConf(st, val) {
@@ -121,9 +119,6 @@ export default createStore({
     },
     setConfFileName(state, val) {
       state.conffilename = val
-    },
-    setKillRing(state, val) {
-      state.killRing = val
     }
   },
   getters: {

@@ -5,7 +5,7 @@ const os = require('os')
 const encpt = require('./encpt')
 const conf = require('./conf');
 const keyfile = require('./keyfile');
-const { dialog } = require('electron');
+const { dialog, clipboard } = require('electron');
 // const { DownloadItem } = require('electron');
 global.isloaded = false
 // conf.getconfig()
@@ -95,6 +95,9 @@ init.initipc = function (win, ipc, shell, app) {
   })
   ipc.on('shut', function(event, args) {
     init.shut()
+  })
+  ipc.on('copy', function(event, args) {
+    clipboard.writeText(args)
   })
   ipc.on('genclist', function(event, args) {
     encpt.encemp(win)

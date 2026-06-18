@@ -169,4 +169,21 @@ button {
   background-color red
   margin 30px auto
 }
+
+@font-face {
+  font-family: 'FontRound'; /* 给字体起个名字 */
+  src: url('~@/assets/font_round.ttf') format('truetype'); /* 使用 webpack 别名 @ 指向 src 目录 */
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'FontEn'; /* 给字体起个名字 */
+  src: url('~@/assets/DejaVuSansMono-Bold.ttf') format('truetype'); /* 使用 webpack 别名 @ 指向 src 目录 */
+  font-weight: normal;
+  font-style: normal;
+}
+.mainbody
+  font-family 'FontEn','FontRound'
+textarea
+  font-family 'FontEn','FontRound'
 </style>

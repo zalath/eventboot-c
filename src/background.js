@@ -1,6 +1,6 @@
 'use strict'
 
-import { app, BrowserWindow, globalShortcut, ipcMain, protocol, shell } from 'electron'
+import { app, BrowserWindow, clipboard, globalShortcut, ipcMain, protocol, shell } from 'electron'
 // import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 // import { globalShortcut } from 'electron/main'
@@ -82,6 +82,29 @@ async function createWindow () {
         type: 'keyDown',
         keyCode: 'Right' // 或者使用 'ArrowUp'
       });
+    }
+    if (input.control && input.key.toLocaleLowerCase() === 'y') {
+      event.preventDefault();
+      const text = clipboard.readText();
+      win.webContents.insertText(text);
+    }
+    if (input.control && input.key.toLocaleLowerCase() === 'v') {
+      event.preventDefault();
+      for(var i = 0; i < 10; i++){
+        win.webContents.sendInputEvent({
+          type: 'keyDown',
+          keyCode: 'Down' // 或者使用 'ArrowUp'
+        });
+      }
+    }
+    if (input.alt && input.key.toLocaleLowerCase() === 'v') {
+      event.preventDefault();
+      for(var i = 0; i < 10; i++){
+        win.webContents.sendInputEvent({
+          type: 'keyDown',
+          keyCode: 'Up' // 或者使用 'ArrowUp'
+        });
+      }
     }
   })
   win.webContents.on('will-navigate', function(e, url) {
