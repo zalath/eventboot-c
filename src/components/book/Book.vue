@@ -1,9 +1,20 @@
 <template>
   <div class="bookbox">
     <div v-if="isshowbook">
-      <div v-for="(v,i) in this.booklist" :key="i">
+      <div class="gap">
+        <div class="clipbtn" @click="showNewBook=true">
+          <i class="fa fa-plus"></i>
+        </div>
+        <div v-if="showNewBook" class="clipbtn">
+          <i class="fa fa-times" @click="showNewBook=false"></i>
+          &nbsp;&nbsp;
+          <input v-model="newName" placeholder="新书名"/>
+          &nbsp;&nbsp;
+          <i class="fa fa-check" @click="addBook()"></i>
+        </div>
+      </div>
+      <div class="gap" v-for="(v,i) in this.booklist" :key="i">
         <partlist :book="v"></partlist>
-        <div class="gap"></div>
       </div>
     </div>
     <a  class="clipbtn" @click="isshowbook=!isshowbook">
@@ -22,15 +33,24 @@ export default {
   },
   data: function() {
     return {
+      showNewBook: false,
       isshowbook: true,
-      booklist: []
-
+      booklist: [],
+      newName: ''
     }
   },
   created() {
     this.$ipc.on('taskreload', this.getbook)
   },
   methods: {
+    addBook() {
+      req.post('booknewbook', {name: this.newName}).then((res) => {
+        this.booklist.push({
+          id: res.data,
+          name: this.newName
+        })
+      })
+    },
     getbook() {
       req.get('booklist', '').then((res) => {
         this.booklist = res.data
@@ -53,7 +73,7 @@ export default {
   left 1rem
 .gap
   height 1px
-  margin 3rem 0
+  margin-bottom 3rem
 </style>
 <style lang="stylus" src='../../css/cyber.styl' scoped>
 </style>

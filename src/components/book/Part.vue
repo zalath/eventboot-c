@@ -438,7 +438,7 @@ export default {
 .part
   position fixed
   width 50%
-  height 50%
+  height 80%
   top 50%
   left 50%
   border solid 1px red

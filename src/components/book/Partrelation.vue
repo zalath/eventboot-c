@@ -2,10 +2,15 @@
   <div v-if="show" class="relationpad" @contextmenu="toggleShow()">
     <div class="relationedit">
       <div class="">
-        <div class="flex">
-          <div v-if="part.type==1" class="t clipbtn" disabled>{{ part.name }}</div>
-          <div v-if="part.type==1" class="t clipbtn" @click="showrelation=true">{{ direction===1?relation.name:relation.revname }} - {{ direction===1?relation.revname:relation.name }}</div>
+        <div v-if="part.type==1" class="flex">
+          <div class="t clipbtn" disabled>{{ part.name }}</div>
+          <div class="t clipbtn" @click="showrelation=true">{{ direction===1?relation.name:relation.revname }} - {{ direction===1?relation.revname:relation.name }}</div>
           <div class="t clipbtn" @click="showrole=true">{{ to.name }}</div>
+        </div>
+        <div v-else class="pad">
+          <div v-for="r in options" :key="r.id" :class="tos.includes(r.id)?'choosed':''" class="paditem clipbtn" @click="choose(r.id)">{{ r.name }}</div>
+          <div class="part-space"></div>
+          <div class="part-space"></div>
         </div>
         <br/>
         <div v-if="part.type==1" class="flex">
@@ -54,45 +59,87 @@ export default {
         id: 0,
         name: '名字'
       },
+      tos: [],
       showrole: false,
       showrelation: false
     }
   },
   methods: {
-    saveEdit() {
-      if (this.part.id === this.to.id) {
-        this.$bus.emit('popuperror', '两个节点不能一样')
+    choose(id) {
+      if (this.part.id === id) {
         return
       }
-      if (this.part.type === 1 && this.relation.id === 2) {
-        this.$bus.emit('popuperror', '请选择关系')
-        return
+      if (this.tos.indexOf(id) >= 0) {
+        this.tos.splice(this.tos.indexOf(id), 1)
+      } else {
+        this.tos.push(id)
       }
-      if (this.to.id === 0) {
-        this.$bus.emit('popuperror', '请选择目标')
-        return
+    },
+    async saveEdit() {
+      if (this.part.type === 1) {
+        if (this.part.id === this.to.id) {
+          this.$bus.emit('popuperror', '两个节点不能一样')
+          return
+        }
+        if (this.part.type === 1 && this.relation.id === 2) {
+          this.$bus.emit('popuperror', '请选择关系')
+          return
+        }
+        if (this.to.id === 0) {
+          this.$bus.emit('popuperror', '请选择目标')
+          return
+        }
+        await this.doSave(this.part.id, this.to.id, this.relation.id, this.direction)
+        this.show = false
+        this.$bus.emit('popupcheck')
+      } else {
+        if (this.tos.length === 0) {
+          this.$bus.emit('popuperror', '请选择目标')
+          return
+        }
+        for (var i = 0; i < this.tos.length; i++) {
+          await this.doSave(this.part.id, this.tos[i], this.relation.id, this.direction)
+        }
+        this.show = false
+        this.$bus.emit('popupcheck')
       }
+    },
+    async doSave(partid, toid, relationid, direction) {
       // TODO: 查询两者是否已经存在关系，并返回关系名称
       var param = {
-        p1: this.part.id,
-        p2: this.to.id,
-        relationid: this.relation.id,
-        direction: this.direction
+        p1: partid,
+        p2: toid,
+        relationid: relationid,
+        direction: direction
       }
       req.post('bookmakerelation', param).then((res) => {
         if (res !== 'mis') {
-          this.$store.commit('addRelation', {id: this.bookid, partid: this.part.id, relation: param, type: this.part.type})
-          this.$store.commit('addRelation', {id: this.bookid, partid: this.to.id, relation: param, type: this.part.type})
-          this.show = false
-          this.$bus.emit('popupcheck')
+          this.$store.commit('addRelation', {id: this.bookid, partid: partid, relation: param, type: this.part.type})
+          this.$store.commit('addRelation', {id: this.bookid, partid: toid, relation: param, type: this.part.type})
         }
       })
+      // // TODO: 查询两者是否已经存在关系，并返回关系名称
+      // var param = {
+      //   p1: this.part.id,
+      //   p2: this.to.id,
+      //   relationid: this.relation.id,
+      //   direction: this.direction
+      // }
+      // req.post('bookmakerelation', param).then((res) => {
+      //   if (res !== 'mis') {
+      //     this.$store.commit('addRelation', {id: this.bookid, partid: this.part.id, relation: param, type: this.part.type})
+      //     this.$store.commit('addRelation', {id: this.bookid, partid: this.to.id, relation: param, type: this.part.type})
+      //     this.show = false
+      //     this.$bus.emit('popupcheck')
+      //   }
+      // })
     },
     toggleShow(bookid, partid) {
       console.log('toggle show add relation')
       this.show = !this.show
       this.bookid = bookid
       this.partid = partid
+      this.tos = []
       this.part = bookid ? this.parts[this.bookid][this.partid] : {}
     }
   },
@@ -136,6 +183,9 @@ export default {
   overflow auto
 .paditem
   margin 8px 15px !important
+.choosed
+  background-color red !important
+  color white
 </style>
 <style lang="stylus" src='../../css/bookpart.styl' scoped></style>
 <style lang="stylus" src='../../css/cyber.styl' scoped></style>

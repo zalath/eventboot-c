@@ -164,10 +164,18 @@ export default {
       this.svgSel.call(this.zoomBehavior);
       // 初始化力导向模拟
       this.simulation = d3.forceSimulation(nodes)
-        .force('charge', d3.forceManyBody().strength(-200)) // 斥力
-        .force('link', d3.forceLink(links).id(d => d.id).distance(150)) // 引力
+        .force('link',
+          d3.forceLink(links).id(d => d.id)
+            .distance(120)
+            .strength(0.2)
+        ) // 引力
+        .force('charge',
+          d3.forceManyBody()
+            .strength(-400)
+            .distanceMin(30)
+        ) // 斥力
+        .force('collide', d3.forceCollide(d => d.r + 15)) // 防止重叠
         .force('center', d3.forceCenter(width / 2, height / 2))
-        .force('collide', d3.forceCollide(50)); // 防止重叠
       // 绘制连线
       const link = this.g.append('g')
         .attr('stroke', '#999')
