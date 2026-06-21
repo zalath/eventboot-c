@@ -447,7 +447,7 @@ export default {
   flex-direction column
   overflow hidden
 .book
-  transform translate(-90%, -70%)
+  transform translate(-90%, -50%)
 .parts
   transform translate(-50%, -50%)
 .content
