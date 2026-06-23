@@ -1,5 +1,8 @@
 // src/js/keybinding.js
 let isListening = false;
+let waitingForSecondKey = false; // 是否等待第二个按键
+let waitingTimeout = null; // 等待超时定时器
+
 export default {
   mounted() {
     if (!isListening) {
@@ -7,9 +10,13 @@ export default {
       isListening = true;
     }
   },
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener('keydown', this.handleEmacsMove, true);
-    isListening = false
+    isListening = false;
+    if (waitingTimeout) {
+      clearTimeout(waitingTimeout);
+      waitingTimeout = null;
+    }
   },
   methods: {
     /**
@@ -21,12 +28,24 @@ export default {
       if (target.tagName !== 'TEXTAREA' && target.tagName !== 'INPUT') {
         return;
       }
+
+      const key = e.key.toLowerCase();
+      let handled = false;
+
+      // 如果正在等待第二个按键
+      if (waitingForSecondKey) {
+        handled = this.handleSecondKey(e, key, target);
+        if (handled) {
+          e.preventDefault();
+        }
+        return;
+      }
+
       // 忽略带有 Alt 或 Meta (Command) 键的组合，只处理 Ctrl
       if (!e.ctrlKey || e.altKey || e.metaKey) {
         return;
       }
-      const key = e.key.toLowerCase();
-      let handled = false;
+
       switch (key) {
       case 'a': // Move to beginning of line
         this.moveToLineStart(target);
@@ -40,10 +59,83 @@ export default {
         this.killLine(target);
         handled = true;
         break;
+      case 'x':
+        // 等待后面的输入，进行进一步的命令匹配，比如 Ctrl+X Ctrl+S
+        // 后面的命令可能加ctrl可能不加，要分开处理
+        this.startWaitingForSecondKey();
+        handled = true;
+        break;
       }
       if (handled) {
         e.preventDefault();
       }
+    },
+    /**
+     * 开始等待第二个按键（Ctrl+X后的组合键）
+     */
+    startWaitingForSecondKey() {
+      waitingForSecondKey = true;
+      // 设置超时，2秒内没有按下第二个键则取消等待
+      if (waitingTimeout) {
+        clearTimeout(waitingTimeout);
+      }
+      waitingTimeout = setTimeout(() => {
+        waitingForSecondKey = false;
+        waitingTimeout = null;
+      }, 200);
+    },
+    /**
+     * 处理第二个按键（Ctrl+X后的组合键）
+     */
+    handleSecondKey(e, key, target) {
+      // 清除等待状态
+      waitingForSecondKey = false;
+      if (waitingTimeout) {
+        clearTimeout(waitingTimeout);
+        waitingTimeout = null;
+      }
+
+      let handled = false;
+
+      // Ctrl+X Ctrl+S: 保存
+      if (e.ctrlKey && key === 's') {
+        this.triggerSave(target);
+        handled = true;
+      } else if (e.ctrlKey && key === 'c') {
+        // Ctrl+X Ctrl+C: 关闭/退出
+        this.triggerClose(target);
+        handled = true;
+      } else if (!e.ctrlKey && key === 's') {
+        // Ctrl+X S (不加Ctrl): 保存
+        this.triggerSave(target);
+        handled = true;
+      } else {
+        // 其他按键：取消等待，不做处理
+        handled = false;
+      }
+
+      return handled;
+    },
+    /**
+     * 触发保存事件
+     */
+    triggerSave(target) {
+      // 触发自定义事件，让组件监听并处理
+      const saveEvent = new CustomEvent('emacs-save', {
+        bubbles: true,
+        detail: { target }
+      });
+      target.dispatchEvent(saveEvent);
+    },
+    /**
+     * 触发关闭事件
+     */
+    triggerClose(target) {
+      const closeEvent = new CustomEvent('emacs-close', {
+        bubbles: true,
+        detail: { target }
+      });
+      target.dispatchEvent(closeEvent);
     },
     /**
      * 移动到当前行行首 (Ctrl+A)

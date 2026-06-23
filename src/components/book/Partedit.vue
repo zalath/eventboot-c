@@ -16,11 +16,13 @@
       <div class="part-space"></div>
       <div class="desc">
         <textarea
+          ref="descTextarea"
           class="part-input"
           :style="'font-size:'+contentFontSize+'px'"
           placeholder="DESC"
           v-model="editpart.desc"
           @keydown.tab="handleTab"
+          @emacs-save="handleEmacsSave"
           >
         </textarea>
       </div>
@@ -92,6 +94,11 @@ export default {
       this.$nextTick(() => {
         textarea.selectionStart = textarea.selectionEnd = start + 4;
       });
+    },
+    handleEmacsSave(e) {
+      // 处理 Ctrl+X Ctrl+S 或 Ctrl+X S 触发的保存事件
+      console.log('Emacs save triggered');
+      this.saveEdit();
     },
     async saveEdit() {
       if (this.isPicChanged) {
