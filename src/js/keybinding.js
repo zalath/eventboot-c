@@ -59,6 +59,10 @@ export default {
         this.killLine(target);
         handled = true;
         break;
+      case 'backspace':// Backspace (删除到上一个回车或者空格)
+        this.deleteToLineStart(target);
+        handled = true;
+        break;
       case 'x':
         // 等待后面的输入，进行进一步的命令匹配，比如 Ctrl+X Ctrl+S
         // 后面的命令可能加ctrl可能不加，要分开处理
@@ -207,6 +211,22 @@ export default {
       const newText = text.substring(0, currentPos) + text.substring(lineEnd);
       el.value = newText;
       el.setSelectionRange(currentPos, currentPos);
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    },
+    deleteToLineStart(el) {
+      const text = el.value;
+      const currentPos = el.selectionStart;
+
+      // 如果光标在行首，不删除任何内容
+      if (currentPos === 0) {
+        return;
+      }
+      // 从当前位置删除到本行行首
+      const lastNewLine = text.lastIndexOf('\n', currentPos - 1);
+      const lineStart = lastNewLine + 1;
+      const newText = text.substring(0, lineStart) + text.substring(currentPos);
+      el.value = newText;
+      el.setSelectionRange(lineStart, lineStart);
       el.dispatchEvent(new Event('input', { bubbles: true }));
     }
   }
