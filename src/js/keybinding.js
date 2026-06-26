@@ -1,9 +1,13 @@
 // src/js/keybinding.js
 let isListening = false;
-let waitingForSecondKey = false; // 是否等待第二个按键
-let waitingTimeout = null; // 等待超时定时器
 
 export default {
+  data() {
+    return {
+      waitingForSecondKey: false, // 是否等待第二个按键（改为实例属性）
+      waitingTimeout: null // 等待超时定时器
+    };
+  },
   mounted() {
     if (!isListening) {
       window.addEventListener('keydown', this.handleEmacsMove, true);
@@ -13,10 +17,11 @@ export default {
   beforeUnmount() {
     window.removeEventListener('keydown', this.handleEmacsMove, true);
     isListening = false;
-    if (waitingTimeout) {
-      clearTimeout(waitingTimeout);
-      waitingTimeout = null;
+    if (this.waitingTimeout) {
+      clearTimeout(this.waitingTimeout);
+      this.waitingTimeout = null;
     }
+    this.waitingForSecondKey = false;
   },
   methods: {
     /**
@@ -33,7 +38,9 @@ export default {
       let handled = false;
 
       // 如果正在等待第二个按键
-      if (waitingForSecondKey) {
+      if (this.waitingForSecondKey) {
+        // 取消等待状态（在判断之前取消，避免影响其他key事件）
+        this.cancelWaitingForSecondKey();
         handled = this.handleSecondKey(e, key, target);
         if (handled) {
           e.preventDefault();
@@ -59,7 +66,7 @@ export default {
         this.killLine(target);
         handled = true;
         break;
-      case 'backspace':// Backspace (删除到上一个回车或者空格)
+      case 'backspace': // Backspace (删除到上一个回车或者空格)
         this.deleteToLineStart(target);
         handled = true;
         break;
@@ -78,43 +85,50 @@ export default {
      * 开始等待第二个按键（Ctrl+X后的组合键）
      */
     startWaitingForSecondKey() {
-      waitingForSecondKey = true;
-      // 设置超时，2秒内没有按下第二个键则取消等待
-      if (waitingTimeout) {
-        clearTimeout(waitingTimeout);
+      this.waitingForSecondKey = true;
+      // 设置超时，1500ms内没有按下第二个键则取消等待
+      if (this.waitingTimeout) {
+        clearTimeout(this.waitingTimeout);
       }
-      waitingTimeout = setTimeout(() => {
-        waitingForSecondKey = false;
-        waitingTimeout = null;
-      }, 200);
+      this.waitingTimeout = setTimeout(() => {
+        this.cancelWaitingForSecondKey();
+      }, 1500);
+    },
+    /**
+     * 取消等待第二个按键
+     */
+    cancelWaitingForSecondKey() {
+      this.waitingForSecondKey = false;
+      if (this.waitingTimeout) {
+        clearTimeout(this.waitingTimeout);
+        this.waitingTimeout = null;
+      }
     },
     /**
      * 处理第二个按键（Ctrl+X后的组合键）
      */
     handleSecondKey(e, key, target) {
-      // 清除等待状态
-      waitingForSecondKey = false;
-      if (waitingTimeout) {
-        clearTimeout(waitingTimeout);
-        waitingTimeout = null;
-      }
-
       let handled = false;
 
-      // Ctrl+X Ctrl+S: 保存
+      // 优先判断是否带Ctrl的组合（Ctrl+X Ctrl+S）
       if (e.ctrlKey && key === 's') {
+        // Ctrl+X Ctrl+S: 保存
+        e.preventDefault();
         this.triggerSave(target);
         handled = true;
       } else if (e.ctrlKey && key === 'c') {
         // Ctrl+X Ctrl+C: 关闭/退出
+        e.preventDefault();
         this.triggerClose(target);
         handled = true;
-      } else if (!e.ctrlKey && key === 's') {
+      } else if (key === 's' && !e.ctrlKey) {
         // Ctrl+X S (不加Ctrl): 保存
+        // 注意：此时必须阻止默认行为，防止浏览器保存网页
+        e.preventDefault();
         this.triggerSave(target);
         handled = true;
       } else {
-        // 其他按键：取消等待，不做处理
+        // 其他按键：不做处理
         handled = false;
       }
 
@@ -194,21 +208,40 @@ export default {
     },
     /**
      * 删除从光标处到行尾的内容 (Ctrl+K)
+     * Emacs风格：第一次删除到行尾（不删换行符），如果光标在换行符处则删除换行符（合并下一行）
      */
     killLine(el) {
       const text = el.value;
       const currentPos = el.selectionStart;
-      let lineEnd = text.indexOf('\n', currentPos);
-      if (lineEnd === -1) {
-        lineEnd = text.length;
-      }
-      if (currentPos === lineEnd) {
-        lineEnd += 1;
+      let deleteEnd;
+
+      // 查找从光标位置开始的下一个换行符
+      const nextNewLine = text.indexOf('\n', currentPos);
+
+      if (nextNewLine === -1) {
+        // 最后一行，没有换行符，删除到文本末尾
+        deleteEnd = text.length;
+      } else if (currentPos === nextNewLine) {
+        // 光标正好在换行符位置，删除换行符（合并下一行）
+        deleteEnd = nextNewLine + 1;
       } else {
-        const killedText = text.substring(currentPos, lineEnd);
+        // 删除从光标到换行符之前的内容（不删除换行符）
+        deleteEnd = nextNewLine;
+      }
+
+      // 边界保护：防止越界
+      if (deleteEnd > text.length) {
+        deleteEnd = text.length;
+      }
+
+      // 保存被删除的内容到剪贴板
+      const killedText = text.substring(currentPos, deleteEnd);
+      if (killedText.length > 0) {
         this.$ipc.send('copy', killedText);
       }
-      const newText = text.substring(0, currentPos) + text.substring(lineEnd);
+
+      // 执行删除
+      const newText = text.substring(0, currentPos) + text.substring(deleteEnd);
       el.value = newText;
       el.setSelectionRange(currentPos, currentPos);
       el.dispatchEvent(new Event('input', { bubbles: true }));
@@ -224,6 +257,8 @@ export default {
       // 从当前位置删除到本行行首
       const lastNewLine = text.lastIndexOf('\n', currentPos - 1);
       const lineStart = lastNewLine + 1;
+      const delText = text.substring(lineStart, currentPos);
+      this.$ipc.send('copy', delText);
       const newText = text.substring(0, lineStart) + text.substring(currentPos);
       el.value = newText;
       el.setSelectionRange(lineStart, lineStart);
