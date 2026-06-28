@@ -76,6 +76,12 @@ export default {
         this.startWaitingForSecondKey();
         handled = true;
         break;
+      case 'w':
+        // 等待后面的输入，进行进一步的命令匹配，比如 Ctrl+X Ctrl+S
+        // 后面的命令可能加ctrl可能不加，要分开处理
+        this.cut(target);
+        handled = true;
+        break;
       }
       if (handled) {
         e.preventDefault();
@@ -262,6 +268,18 @@ export default {
       const newText = text.substring(0, lineStart) + text.substring(currentPos);
       el.value = newText;
       el.setSelectionRange(lineStart, lineStart);
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    },
+    cut(el) {
+      // 将选中的部分剪切到剪切板
+      const text = el.value;
+      const currentPos = el.selectionStart;
+      const selectedText = text.substring(currentPos, el.selectionEnd);
+      this.$ipc.send('copy', selectedText);
+      // 删除选中的内容
+      const newText = text.substring(0, currentPos) + text.substring(el.selectionEnd);
+      el.value = newText;
+      el.setSelectionRange(currentPos, currentPos);
       el.dispatchEvent(new Event('input', { bubbles: true }));
     }
   }
