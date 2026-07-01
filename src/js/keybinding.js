@@ -1,5 +1,6 @@
 // src/js/keybinding.js
 let isListening = false;
+let handlerInstance = null; // 保存当前处理实例的引用
 
 export default {
   data() {
@@ -13,10 +14,14 @@ export default {
       window.addEventListener('keydown', this.handleEmacsMove, true);
       isListening = true;
     }
+    handlerInstance = this;
   },
   beforeUnmount() {
-    window.removeEventListener('keydown', this.handleEmacsMove, true);
-    isListening = false;
+    if (isListening && handlerInstance === this) {
+      window.removeEventListener('keydown', this.handleEmacsMove, true);
+      isListening = false;
+      handlerInstance = null;
+    }
     if (this.waitingTimeout) {
       clearTimeout(this.waitingTimeout);
       this.waitingTimeout = null;
@@ -28,6 +33,11 @@ export default {
      * 主处理函数：拦截特定的 Ctrl 组合键
      */
     handleEmacsMove(e) {
+      // 如果事件已经被其他处理器阻止，跳过处理
+      if (e.defaultPrevented) {
+        return;
+      }
+
       // 只在 textarea 或 input 元素中生效
       const target = e.target;
       if (target.tagName !== 'TEXTAREA' && target.tagName !== 'INPUT') {
@@ -39,11 +49,11 @@ export default {
 
       // 如果正在等待第二个按键
       if (this.waitingForSecondKey) {
-        // 取消等待状态（在判断之前取消，避免影响其他key事件）
         this.cancelWaitingForSecondKey();
         handled = this.handleSecondKey(e, key, target);
         if (handled) {
           e.preventDefault();
+          e.stopImmediatePropagation();
         }
         return;
       }
@@ -71,14 +81,14 @@ export default {
         handled = true;
         break;
       case 'x':
-        // 等待后面的输入，进行进一步的命令匹配，比如 Ctrl+X Ctrl+S
-        // 后面的命令可能加ctrl可能不加，要分开处理
         this.startWaitingForSecondKey();
         handled = true;
         break;
       }
+
       if (handled) {
         e.preventDefault();
+        e.stopImmediatePropagation();
       }
     },
     /**
@@ -92,7 +102,7 @@ export default {
       }
       this.waitingTimeout = setTimeout(() => {
         this.cancelWaitingForSecondKey();
-      }, 1500);
+      }, 400);
     },
     /**
      * 取消等待第二个按键
@@ -243,8 +253,14 @@ export default {
       // 执行删除
       const newText = text.substring(0, currentPos) + text.substring(deleteEnd);
       el.value = newText;
-      el.setSelectionRange(currentPos, currentPos);
-      el.dispatchEvent(new Event('input', { bubbles: true }));
+
+      // 使用 InputEvent 确保 v-model 正确同步
+      el.dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+      // 使用 $nextTick 在 Vue 重新渲染后恢复光标位置
+      this.$nextTick(() => {
+        el.setSelectionRange(currentPos, currentPos);
+      });
     },
     deleteToLineStart(el) {
       const text = el.value;
@@ -261,8 +277,14 @@ export default {
       this.$ipc.send('copy', delText);
       const newText = text.substring(0, lineStart) + text.substring(currentPos);
       el.value = newText;
-      el.setSelectionRange(lineStart, lineStart);
-      el.dispatchEvent(new Event('input', { bubbles: true }));
+
+      // 使用 InputEvent 确保 v-model 正确同步
+      el.dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+      // 使用 $nextTick 在 Vue 重新渲染后恢复光标位置
+      this.$nextTick(() => {
+        el.setSelectionRange(lineStart, lineStart);
+      });
     }
   }
 }
