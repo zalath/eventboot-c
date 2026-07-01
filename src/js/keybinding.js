@@ -81,6 +81,8 @@ export default {
         handled = true;
         break;
       case 'x':
+        // 等待后面的输入，进行进一步的命令匹配，比如 Ctrl+X Ctrl+S
+        // 后面的命令可能加ctrl可能不加，要分开处理
         this.startWaitingForSecondKey();
         handled = true;
         break;
