@@ -227,6 +227,7 @@ export default {
     /**
      * 删除从光标处到行尾的内容 (Ctrl+K)
      * Emacs风格：第一次删除到行尾（不删换行符），如果光标在换行符处则删除换行符（合并下一行）
+     * 使用document.execCommand实现原生撤销支持
      */
     killLine(el) {
       const text = el.value;
@@ -258,18 +259,21 @@ export default {
         this.$ipc.send('copy', killedText);
       }
 
-      // 执行删除
-      const newText = text.substring(0, currentPos) + text.substring(deleteEnd);
-      el.value = newText;
-
-      // 使用 InputEvent 确保 v-model 正确同步
-      el.dispatchEvent(new InputEvent('input', { bubbles: true }));
+      // 使用execCommand实现删除，自动加入浏览器撤销队列
+      // @ts-expect-error document.execCommand is deprecated but remains the only way to integrate with native undo
+      el.focus();
+      el.setSelectionRange(currentPos, deleteEnd);
+      document.execCommand('delete');
 
       // 使用 $nextTick 在 Vue 重新渲染后恢复光标位置
       this.$nextTick(() => {
         el.setSelectionRange(currentPos, currentPos);
       });
     },
+    /**
+     * 删除从光标处到行首的内容 (Ctrl+Backspace)
+     * 使用document.execCommand实现原生撤销支持
+     */
     deleteToLineStart(el) {
       const text = el.value;
       const currentPos = el.selectionStart;
@@ -283,22 +287,45 @@ export default {
       const lineStart = lastNewLine + 1;
       const delText = text.substring(lineStart, currentPos);
       this.$ipc.send('copy', delText);
-      const newText = text.substring(0, lineStart) + text.substring(currentPos);
-      el.value = newText;
-      el.setSelectionRange(lineStart, lineStart);
-      el.dispatchEvent(new Event('input', { bubbles: true }));
+
+      // 使用execCommand实现删除，自动加入浏览器撤销队列
+      // @ts-expect-error document.execCommand is deprecated but remains the only way to integrate with native undo
+      el.focus();
+      el.setSelectionRange(lineStart, currentPos);
+      document.execCommand('delete');
+
+      // 使用 $nextTick 在 Vue 重新渲染后恢复光标位置
+      this.$nextTick(() => {
+        el.setSelectionRange(lineStart, lineStart);
+      });
     },
+    /**
+     * 剪切选中的内容 (Ctrl+W)
+     * 使用document.execCommand实现原生撤销支持
+     */
     cut(el) {
-      // 将选中的部分剪切到剪切板
       const text = el.value;
       const currentPos = el.selectionStart;
-      const selectedText = text.substring(currentPos, el.selectionEnd);
+      const selectionEnd = el.selectionEnd;
+      const selectedText = text.substring(currentPos, selectionEnd);
+
+      // 如果没有选中内容，不做处理
+      if (currentPos === selectionEnd) {
+        return;
+      }
+
       this.$ipc.send('copy', selectedText);
-      // 删除选中的内容
-      const newText = text.substring(0, currentPos) + text.substring(el.selectionEnd);
-      el.value = newText;
-      el.setSelectionRange(currentPos, currentPos);
-      el.dispatchEvent(new Event('input', { bubbles: true }));
+
+      // 使用execCommand实现剪切，自动加入浏览器撤销队列
+      // @ts-expect-error document.execCommand is deprecated but remains the only way to integrate with native undo
+      el.focus();
+      el.setSelectionRange(currentPos, selectionEnd);
+      document.execCommand('delete');
+
+      // 使用 $nextTick 在 Vue 重新渲染后恢复光标位置
+      this.$nextTick(() => {
+        el.setSelectionRange(currentPos, currentPos);
+      });
     }
   }
 }
