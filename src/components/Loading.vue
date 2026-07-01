@@ -2,6 +2,7 @@
   <div>
     <div class="loading loadanime1"></div>
     <div class="loading loadanime2" @click="reloadapi()"></div>
+    <div class="loading close fa fa-times" @click="close()"></div>
   </div>
 </template>
 <script>
@@ -14,6 +15,9 @@ export default {
       if (event.key === 'Enter' || event.keyCode === 13) {
         this.reloadapi()
       }
+    },
+    close() {
+      this.$ipc.send('closeapp')
     }
   },
   mounted() {
@@ -25,7 +29,6 @@ export default {
 }
 </script>
 <style lang="stylus" scoped>
-
 .loading
   position absolute
   top 50%
@@ -34,13 +37,20 @@ export default {
   margin auto
   height 100px
   width 100px
-  box-shadow 20px 20px 30px rgba(255,255,255,0.5)
 .loadanime1
   background-color rgba(255,255,255,0.2)
   animation loading 1200ms infinite
 .loadanime2
   background-color rgba(200,255,200,0.2)
   animation loading2 1200ms infinite
+.close
+  text-align center
+  margin-top 60px
+  font-size 40px
+  color gray
+  top 60%
+  left 50%
+  transform translate(-50%, 0%)
 @keyframes loading
   from
     clip-path polygon(18% 15%, 82% 0%, 100% 82%, 20% 100%)

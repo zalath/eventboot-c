@@ -49,6 +49,9 @@ export default {
   props: {
     book: {}
   },
+  created() {
+    this.$ipc.on('secret', () => { this.isshow = false })
+  },
   data() {
     return {
       passSource: '',

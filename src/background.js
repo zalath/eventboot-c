@@ -30,7 +30,7 @@ async function createWindow () {
   })
   win.maximize()
   init.initipc(win, ipc, shell, app)
-  globalShortcut.register('Alt+Ctrl+D', () => { console.log('in showing window');win.show() })
+  globalShortcut.register('Alt+Ctrl+D', () => { win.show() })
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
     setTimeout(() => {
@@ -50,7 +50,10 @@ async function createWindow () {
     //   win.webContents.send('setpage', 1);
     // }
     if (input.type !== 'keyDown') return;
-
+    if (input.key === 'F8') {
+      event.preventDefault();
+      win.webContents.send('secret');
+    }
     if (input.control && input.key.toLocaleLowerCase() === 'p') {
       event.preventDefault();
       // 模拟按下 "ArrowUp" (向上箭头)
