@@ -92,6 +92,10 @@ export default {
         this.cut(target);
         handled = true;
         break;
+      case 'd': // Delete forward (delete one character after cursor)
+        this.deleteForward(target);
+        handled = true;
+        break;
       }
 
       if (handled) {
@@ -128,8 +132,13 @@ export default {
     handleSecondKey(e, key, target) {
       let handled = false;
 
-      // 优先判断是否带Ctrl的组合（Ctrl+X Ctrl+S）
-      if (e.ctrlKey && key === 's') {
+      if (e.ctrlKey && key === 'h') {
+        // Ctrl+X Ctrl+h: 全选
+        e.preventDefault();
+        this.selectAll(target);
+        handled = true;
+      } else if (e.ctrlKey && key === 's') {
+        // 优先判断是否带Ctrl的组合（Ctrl+X Ctrl+S）
         // Ctrl+X Ctrl+S: 保存
         e.preventDefault();
         this.triggerSave(target);
@@ -272,6 +281,9 @@ export default {
     },
     /**
      * 删除从光标处到行首的内容 (Ctrl+Backspace)
+     * 智能分隔符感知：支持中英文标点和空格
+     * - 如果紧挨着标点符号，仅删除一个字符
+     * - 否则删除到上一个分隔符位置
      * 使用document.execCommand实现原生撤销支持
      */
     deleteToLineStart(el) {
@@ -282,21 +294,62 @@ export default {
       if (currentPos === 0) {
         return;
       }
-      // 从当前位置删除到本行行首
+
+      // 定义分隔符：中英文标点、空格、制表符、换行符
+      const delimiterRegex = /[\s，。！？；：""''“”‘’（）、《》【】…—,.!?;:'"()<>[\]{}]/;
+
+      // 获取当前字符和前一个字符
+      const prevChar = text[currentPos - 1];
+
+      // 如果前一个字符是分隔符，仅删除一个字符
+      if (prevChar && delimiterRegex.test(prevChar)) {
+        const delText = text.substring(currentPos - 1, currentPos);
+        this.$ipc.send('copy', delText);
+
+        // 使用execCommand实现删除，自动加入浏览器撤销队列
+        // @ts-expect-error document.execCommand is deprecated but remains the only way to integrate with native undo
+        el.focus();
+        el.setSelectionRange(currentPos - 1, currentPos);
+        document.execCommand('delete');
+
+        // 使用 $nextTick 在 Vue 重新渲染后恢复光标位置
+        this.$nextTick(() => {
+          el.setSelectionRange(currentPos - 1, currentPos - 1);
+        });
+        return;
+      }
+
+      // 从当前位置向前扫描，找到上一个分隔符
+      let deleteStart = currentPos - 1;
+      while (deleteStart > 0) {
+        const char = text[deleteStart - 1];
+        if (delimiterRegex.test(char)) {
+          break;
+        }
+        deleteStart--;
+      }
+
+      // 查找行首位置（作为边界）
       const lastNewLine = text.lastIndexOf('\n', currentPos - 1);
       const lineStart = lastNewLine + 1;
-      const delText = text.substring(lineStart, currentPos);
+
+      // 确保不超过行首
+      if (deleteStart < lineStart) {
+        deleteStart = lineStart;
+      }
+
+      const delText = text.substring(deleteStart, currentPos);
       this.$ipc.send('copy', delText);
 
       // 使用execCommand实现删除，自动加入浏览器撤销队列
       // @ts-expect-error document.execCommand is deprecated but remains the only way to integrate with native undo
       el.focus();
-      el.setSelectionRange(lineStart, currentPos);
+      el.setSelectionRange(deleteStart, currentPos);
       document.execCommand('delete');
 
       // 使用 $nextTick 在 Vue 重新渲染后恢复光标位置
       this.$nextTick(() => {
-        el.setSelectionRange(lineStart, lineStart);
+        el.setSelectionRange(deleteStart, deleteStart);
       });
     },
     /**
@@ -325,6 +378,39 @@ export default {
       // 使用 $nextTick 在 Vue 重新渲染后恢复光标位置
       this.$nextTick(() => {
         el.setSelectionRange(currentPos, currentPos);
+      });
+    },
+    /**
+     * 删除光标后面的一个字符 (Ctrl+D)
+     * 使用document.execCommand实现原生撤销支持
+     */
+    deleteForward(el) {
+      const text = el.value;
+      const currentPos = el.selectionStart;
+
+      // 如果光标在文本末尾，不删除任何内容
+      if (currentPos >= text.length) {
+        return;
+      }
+
+      // 删除光标后面的一个字符
+      const delText = text.substring(currentPos, currentPos + 1);
+      this.$ipc.send('copy', delText);
+
+      // 使用execCommand实现删除，自动加入浏览器撤销队列
+      // @ts-expect-error document.execCommand is deprecated but remains the only way to integrate with native undo
+      el.focus();
+      el.setSelectionRange(currentPos, currentPos + 1);
+      document.execCommand('delete');
+
+      // 使用 $nextTick 在 Vue 重新渲染后恢复光标位置
+      this.$nextTick(() => {
+        el.setSelectionRange(currentPos, currentPos);
+      });
+    },
+    selectAll(el) {
+      this.$nextTick(() => {
+        el.setSelectionRange(0, el.value.length);
       });
     }
   }

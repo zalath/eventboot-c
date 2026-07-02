@@ -79,6 +79,7 @@
         <div class="clipbtn" @click="closePart"><i class="fa fa-times"></i></div>
         <div class="clipbtn" @click="toEditPart('edit', 1)"><i class="fa fa-pencil"></i></div>
         <div class="clipbtn" @click="show=false;show=true;"><i class="fa fa-refresh"></i></div>
+        <div v-if="parts[bookid][partid].desc !== ''" class="clipbtn noborder">{{ parts[bookid][partid].desc.length }}</div>
       </div>
       <div class="resizeBtn" @mousedown="startResize">
       </div>
@@ -500,6 +501,10 @@ export default {
   border solid 1px red
   background-color rgba(255, 0, 0, 0.3)
   color white
+.noborder
+  border none !important
+  box-shadow none !important
+  outline none !important
 </style>
 <style lang="stylus" src='../../css/bookpart.styl' scoped></style>
 <style lang="stylus" src='../../css/cyber.styl' scoped>

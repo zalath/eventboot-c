@@ -169,4 +169,6 @@ button {
   background-color red
   margin 30px auto
 }
+textarea
+  caret-color #39ff14
 </style>

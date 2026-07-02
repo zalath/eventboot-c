@@ -29,6 +29,7 @@
       <div class="part-space"></div>
       <div class="part-space"></div>
       <div class="part-btns">
+        <div v-if="editpart.desc!==''" class="clipbtn noborder">{{ editpart.desc.length }}</div>
         <div class="clipbtn" @click="fontsize(2)">
           <i class="fa fa-plus"></i>
         </div>
@@ -198,6 +199,10 @@ export default {
     width 100% !important
     resize none !important
     box-sizing border-box !important
+.noborder
+  border none !important
+  box-shadow none !important
+  outline none !important
 </style>
 <style lang="stylus" src='../../css/bookpart.styl' scoped></style>
 <style lang="stylus" src='../../css/cyber.styl' scoped></style>
