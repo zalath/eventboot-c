@@ -18,7 +18,7 @@
         <textarea
           ref="descTextarea"
           class="part-input"
-          :style="'font-size:'+contentFontSize+'px'"
+          :style="'font-size:'+contentFontSize+'px;caret-witch=4px;'"
           placeholder="DESC"
           v-model="editpart.desc"
           @keydown.tab="handleTab"

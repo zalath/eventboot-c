@@ -15,7 +15,7 @@
     </div>
     <div class="clipbtn" v-show="isshowbtns" v-if="isshowUnlockPad">
       <!-- <span>{{ passSource }}</span> -->
-      <input v-model="pass" type="password"/>
+      <input v-model="pass" type="password" @keyup.enter="unlock"/>
       &nbsp;
       <span @click="unlock">
         <i class="fa fa-check"></i>

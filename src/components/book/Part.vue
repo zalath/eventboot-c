@@ -325,7 +325,9 @@ export default {
             const text = node.textContent
             if (!text.trim()) return // 忽略纯空白节点以保持格式
 
-            let masked = text.replace(/[\u4e00-\u9fa5\u3000-\u303f\uff00-\uffef]/g, '文')
+            const commonChars = '的一是不了人我有他在这为之大来上个国到说时要出和着子地就而得于你生会可年发自后作家能下过天去好小部其些主样理心她前开但因从还日文同现当没动面方多经么定行学法所民得成也加都两高间由问很最吧机物工种电水化老做之起看教与事入把政身到情知已长意进手下生年用发会可家有他在这为之大来上个国到说时要出和着子地就而得于你生会可年发自后作家能下过天去好小部其些主样理心她前开但因从还日文同现当没动面方多经么定行学法所民得成也加都两高间由问很最吧机物工种电水化老做之起看教与事入把政身到情知已长意进手下'
+            const getRandomChar = () => commonChars[Math.floor(Math.random() * commonChars.length)]
+            let masked = text.replace(/[\u4e00-\u9fa5\u3000-\u303f\uff00-\uffef]/g, getRandomChar)
             masked = masked.replace(/[a-z]/g, 'n')
             masked = masked.replace(/[A-Z]/g, 'N')
             masked = masked.replace(/[0-9]/g, '8') // 可选：数字也替换

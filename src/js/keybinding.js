@@ -96,6 +96,14 @@ export default {
         this.deleteForward(target);
         handled = true;
         break;
+      case '=': // Increase font size
+        this.increaseFontSize(target, 2);
+        handled = true;
+        break;
+      case '-': // Decrease font size
+        this.increaseFontSize(target, -2);
+        handled = true;
+        break;
       }
 
       if (handled) {
@@ -407,6 +415,13 @@ export default {
       this.$nextTick(() => {
         el.setSelectionRange(currentPos, currentPos);
       });
+    },
+    /**
+     * 放大文本字号 (Ctrl++)
+     */
+    increaseFontSize(el, val) {
+      const fontsize = parseFloat(el.style.fontSize);
+      el.style.fontSize = fontsize + val + 'px';
     },
     selectAll(el) {
       this.$nextTick(() => {
