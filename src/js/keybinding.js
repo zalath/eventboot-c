@@ -2,6 +2,7 @@
 let isListening = false;
 let handlerInstance = null; // 保存当前处理实例的引用
 
+const delimiterRegex = /[\s，。！？；：""''“”‘’（）、《》【】…—,.!?;:'"()<>[\]{}]/;
 export default {
   data() {
     return {
@@ -61,6 +62,18 @@ export default {
       // 忽略带有 Alt 或 Meta (Command) 键的组合，只处理 Ctrl
       if (!e.ctrlKey || e.altKey || e.metaKey) {
         return;
+      }
+      if (e.altKey) {
+        switch (key) {
+        case 'f':
+          this.moveToNextMark(target);
+          handled = true;
+          break;
+        case 'b':
+          this.moveToPrevMark(target);
+          handled = true;
+          break;
+        }
       }
 
       switch (key) {
@@ -242,6 +255,41 @@ export default {
       el.setSelectionRange(lineEnd, lineEnd);
     },
     /**
+     * 移动到上一个标点符号
+     */
+    moveToPrevMark(el) {
+      const text = el.value;
+      const currentPos = el.selectionStart;
+      if (currentPos <= 0) {
+        return;
+      }
+      for (let i = currentPos - 1; i >= 0; i--) {
+        if (delimiterRegex.test(text[i])) {
+          el.setSelectionRange(i, i);
+          return;
+        }
+      }
+      el.setSelectionRange(0, 0);
+    },
+    /**
+     * 移动到下一个标点符号
+     */
+    moveToNextMark(el) {
+      const text = el.value;
+      const currentPos = el.selectionStart;
+      if (currentPos >= text.length) {
+        return;
+      }
+      for (let i = currentPos; i < text.length; i++) {
+        if (delimiterRegex.test(text[i])) {
+          el.setSelectionRange(i, i);
+          return;
+        }
+      }
+
+      el.setSelectionRange(text.length, text.length);
+    },
+    /**
      * 删除从光标处到行尾的内容 (Ctrl+K)
      * Emacs风格：第一次删除到行尾（不删换行符），如果光标在换行符处则删除换行符（合并下一行）
      * 使用document.execCommand实现原生撤销支持
@@ -302,9 +350,6 @@ export default {
       if (currentPos === 0) {
         return;
       }
-
-      // 定义分隔符：中英文标点、空格、制表符、换行符
-      const delimiterRegex = /[\s，。！？；：""''“”‘’（）、《》【】…—,.!?;:'"()<>[\]{}]/;
 
       // 获取当前字符和前一个字符
       const prevChar = text[currentPos - 1];

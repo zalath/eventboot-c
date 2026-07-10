@@ -450,9 +450,12 @@ export default {
   flex-direction column
   overflow hidden
 .book
-  transform translate(-90%, -50%)
+  width 30%
+  left 0%
+  transform translate(0%, -50%)
 .parts
-  transform translate(-50%, -50%)
+  left 31%
+  transform translate(0%, -50%)
 .content
   padding 0 4%
   flex-grow 1
