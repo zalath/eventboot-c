@@ -4,8 +4,39 @@
       <div class="part-space"></div>
       <div class="part-infobar">
         <div class="info part-pic">
-          <img :src="picdisplay?picdisplay:defaultpic" @click.stop="$refs.file.click()"/>
-          <input type="file" style="display:none;" ref="file" @change="tempPic($event)"/>
+          <div class="part-picbtn">
+            <div class="clipbtn">
+              <i>{{ picdisplay.length>0?picindex+1:"0" }}</i>
+            </div>
+            <br/>
+            <div class="clipbtn" @click="nextpic(-1)">
+              <i class="fa fa-chevron-left"></i>
+            </div>
+            <br/>
+            <div class="clipbtn">
+              <i>{{ picdisplay.length>0?picdisplay.length:"0" }}</i>
+            </div>
+          </div>
+          <div class="part-pics">
+            <img v-if="picdisplay.length === 0" :src="defaultpic"/>
+            <img v-else :src="picdisplay[picindex].url" @click="zoompic()"/>
+            <input type="file" style="display:none;" ref="file" multiple @change="tempPic($event)"/>
+          </div>
+          <div class="part-picbtn">
+            <div>
+              <div class="clipbtn" @click.stop="$refs.file.click()">
+                <i class="fa fa-plus"></i>
+              </div>
+              <br/>
+              <div class="clipbtn" @click="nextpic(1)">
+                <i class="fa fa-chevron-right"></i>
+              </div>
+              <br/>
+              <div class="clipbtn">
+                <i class="fa fa-times"></i>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="info part-txt">
           <div class="part-space"></div>
@@ -43,6 +74,14 @@
           <i class="fa fa-times"></i>
         </div>
       </div>
+      <div class="zoompic" v-if="zoomPic" @click="zoompic()">
+        <img :src="picdisplay[picindex].url" loading="lazy"/>
+        <div v-if="picdisplay.length > 1" class="pic-nav">
+          <span @click.stop="nextpic(-1)" class="clipbtn"><i class="fa fa-chevron-left"></i></span>
+          <span class="nav-info">{{ picindex + 1 }} / {{ picdisplay.length }}</span>
+          <span @click.stop="nextpic(1)" class="clipbtn"><i class="fa fa-chevron-right"></i></span>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -66,21 +105,25 @@ export default {
       relationid: Number,
       relationpos: 1,
       contentFontSize: 14,
-      picdisplay: '',
-      pic: {},
-      isPicChanged: false
+      picdisplay: [],
+      pic: [],
+      isPicChanged: false,
+      picindex: 0,
+      zoomPic: false
     }
   },
   methods: {
     tempPic(event) {
-      this.pic = event.target.files[0];
-      const reader = new FileReader();
-      reader.addEventListener('load', (e) => {
-        if (e.loaded < 20 * 1024 * 1024) this.picdisplay = e.target.result
-        else this.picdisplay = e
-      })
+      const files = Array.from(event.target.files);
+      files.forEach((file) => {
+        const reader = new FileReader();
+        reader.addEventListener('load', (e) => {
+          this.picdisplay.push({ url: e.target.result, file: file });
+          this.picindex = this.picdisplay.length - 1;
+        });
+        reader.readAsDataURL(file);
+      });
       this.isPicChanged = true;
-      reader.readAsDataURL(this.pic);
     },
     handleTab(e) {
       e.preventDefault(); // 阻止默认的焦点切换行为
@@ -102,13 +145,23 @@ export default {
       this.saveEdit();
     },
     async saveEdit() {
-      if (this.isPicChanged) {
-        var formData = new FormData();
-        formData.append('del', this.editpart.pic);
-        formData.append('file', this.$refs.file.files[0]);
-        await req.upload('fupload', formData, {}).then(res => {
-          this.editpart.pic = res.data
-        })
+      if (this.picdisplay.length > 0) {
+        const picPaths = [];
+        for (const item of this.picdisplay) {
+          if (item.file) {
+            const formData = new FormData();
+            formData.append('del', '');
+            formData.append('file', item.file);
+            const res = await req.upload('fupload', formData, {});
+            picPaths.push(res.data);
+          } else {
+            const pathStart = item.url.indexOf('/f/');
+            picPaths.push(item.url.substring(pathStart + 1));
+          }
+        }
+        this.editpart.pic = picPaths.join('++@@++');
+      } else {
+        this.editpart.pic = '';
       }
       if (this.edittype === 'new') {
         this.editpart.type = this.parttype
@@ -156,7 +209,11 @@ export default {
       this.edittype = type
       if (this.edittype === 'edit') {
         this.editpart = this.parts[this.bookid][this.partid]
-        this.picdisplay = this.editpart.pic !== '' ? this.$store.state.api + this.editpart.pic : ''
+        if (this.editpart.pic) {
+          this.picdisplay = this.editpart.pic.split('++@@++').filter(p => p.trim()).map(p => ({ url: this.$store.state.api + p, file: null }))
+        } else {
+          this.picdisplay = []
+        }
       } else {
         this.editpart = {
           pic: '',
@@ -168,6 +225,15 @@ export default {
     },
     fontsize(num) {
       this.contentFontSize += num
+    },
+    nextpic(num) {
+      if (this.picdisplay.length === 0) return
+      this.picindex += num
+      if (this.picindex < 0) this.picindex = this.picdisplay.length - 1
+      if (this.picindex >= this.picdisplay.length) this.picindex = 0
+    },
+    zoompic() {
+      this.zoomPic = !this.zoomPic
     }
   },
   computed: mapState({
@@ -203,6 +269,32 @@ export default {
   border none !important
   box-shadow none !important
   outline none !important
+.zoompic
+  position absolute
+  top 0
+  left 0
+  width 100%
+  height 100%
+  display flex
+  flex-direction column
+  justify-content center
+  align-items center
+  background-color rgba(0, 0, 0, 0.8)
+  z-index 1000
+  img
+    max-width 100%
+    max-height 80%
+    object-fit contain
+  .pic-nav
+    position absolute
+    bottom 30px
+    display flex
+    align-items center
+    gap 15px
+    .nav-info
+      font-size 14px
+      padding 5px 10px
+      background-color rgba(0, 0, 0, 0.5)
 </style>
 <style lang="stylus" src='../../css/bookpart.styl' scoped></style>
 <style lang="stylus" src='../../css/cyber.styl' scoped></style>

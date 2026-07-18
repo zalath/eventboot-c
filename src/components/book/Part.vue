@@ -10,7 +10,28 @@
     <div class="content">
       <div class="part-infobar">
         <div class="info part-pic">
-          <img :src="part.pic?$store.state.api + part.pic:defaultpic" @click.stop="zoomPic=!zoomPic" loading="lazy"/>
+          <div class="part-picbtn">
+            <div class="clipbtn">
+              {{ picList.length > 0 ? picindex + 1 : "0" }}
+            </div>
+            <br/>
+            <div class="clipbtn" @click="nextpic(-1)">
+              <i class="fa fa-chevron-left"></i>
+            </div>
+            <br/>
+            <div class="clipbtn">
+              <i>{{ picList.length }}</i>
+            </div>
+          </div>
+          <div class="part-pics">
+            <img v-if="picList.length === 0" :src="defaultpic" loading="lazy"/>
+            <img v-else :src="$store.state.api + picList[picindex]" @click.stop="zoomPic=!zoomPic" loading="lazy"/>
+          </div>
+          <div class="part-picbtn">
+            <div class="clipbtn" @click="nextpic(1)">
+              <i class="fa fa-chevron-right"></i>
+            </div>
+          </div>
         </div>
         <div class="info part-txt">
           <div class="part-space"></div>
@@ -84,7 +105,12 @@
       <div class="resizeBtn" @mousedown="startResize">
       </div>
       <div class="zoompic" v-if="zoomPic" @click="zoomPic=false">
-        <img :src="$store.state.api + part.pic" loading="lazy"/>
+        <img :src="$store.state.api + picList[picindex]" loading="lazy"/>
+        <div v-if="picList.length > 1" class="pic-nav">
+          <span @click.stop="nextpic(-1)" class="clipbtn"><i class="fa fa-chevron-left"></i></span>
+          <span class="nav-info">{{ picindex + 1 }} / {{ picList.length }}</span>
+          <span @click.stop="nextpic(1)" class="clipbtn"><i class="fa fa-chevron-right"></i></span>
+        </div>
       </div>
     </div>
     <Partedit ref="partedit">
@@ -127,7 +153,8 @@ export default {
       markdownSkeleton: '',
       movis: false,
       movi: 0,
-      movto: 0
+      movto: 0,
+      picindex: 0
     }
   },
   created() {
@@ -241,6 +268,11 @@ export default {
           }
         })
       }
+    },
+    nextpic(num) {
+      this.picindex += num
+      if (this.picindex < 0) this.picindex = this.picList.length - 1
+      if (this.picindex >= this.picList.length) this.picindex = 0
     },
     /**
      * 开始调整大小
@@ -357,11 +389,15 @@ export default {
       parts: state => state.parts,
       relationtypelist: state => state.relationtypelist
     }),
+    picList: function () {
+      if (!this.part.pic) return []
+      return this.part.pic.split('++@@++').filter(p => p.trim())
+    },
     renderedMarkdown: function () {
       return mdi.render(this.part.desc)
     },
     isShowRelation2: function () {
-      return this.parts[this.bookid][this.partid].relations2 && this.parts[this.bookid][this.partid].relations2.length > 0
+      return this.partid === this.bookid || (this.parts[this.bookid][this.partid].relations2 && this.parts[this.bookid][this.partid].relations2.length > 0)
     }
   },
   directives: {
@@ -496,12 +532,32 @@ export default {
   width 100%
   height 100%
   display flex
+  flex-direction column
   justify-content center
-  vertical-align middle
+  align-items center
   background-color rgba(0, 0, 0, 0.8)
   img
     max-width 100%
+    max-height 80%
     object-fit contain
+  .pic-nav
+    position absolute
+    bottom 30px
+    display flex
+    align-items center
+    gap 15px
+    color white
+    .nav-btn
+      cursor pointer
+      padding 10px
+      background-color rgba(255, 0, 0, 0.5)
+      border-radius 50%
+      &:hover
+        background-color red
+    .nav-info
+      font-size 14px
+      padding 5px 10px
+      background-color rgba(0, 0, 0, 0.5)
 .bordered
   border solid 1px red
   background-color rgba(255, 0, 0, 0.3)
