@@ -10,7 +10,7 @@
     <div class="content">
       <div class="part-infobar">
         <div class="info part-pic">
-          <div class="part-picbtn">
+          <div class="part-picbtn" v-if="picList.length > 1">
             <div class="clipbtn">
               {{ picList.length > 0 ? picindex + 1 : "0" }}
             </div>
@@ -27,7 +27,7 @@
             <img v-if="picList.length === 0" :src="defaultpic" loading="lazy"/>
             <img v-else :src="$store.state.api + picList[picindex]" @click.stop="zoomPic=!zoomPic" loading="lazy"/>
           </div>
-          <div class="part-picbtn">
+          <div class="part-picbtn" v-if="picList.length > 1">
             <div class="clipbtn" @click="nextpic(1)">
               <i class="fa fa-chevron-right"></i>
             </div>
@@ -70,7 +70,7 @@
       </div>
       <div v-if="isShowRelation2" class="divider"></div>
       <div v-if="isShowRelation2"  class="partlist column">
-        <div class="partline" :class="isOpen(r2)" v-for="(r2, j) in parts[bookid][partid].relations2" :key="j" v-dragrelto2="j">
+        <div class="partline" :class="isOpen(r2)" v-for="(r2, j) in parts[bookid][partid].relations2" :key="j" v-dragrelto2="j" @contextmenu="openPart(r2.p1, r2.p2)">
           <span v-if="r2.ismoveto" class="delbtn">
             <i class="fa fa-caret-left"></i>
           </span>

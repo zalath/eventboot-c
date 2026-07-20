@@ -32,7 +32,7 @@
                 <i class="fa fa-chevron-right"></i>
               </div>
               <br/>
-              <div class="clipbtn">
+              <div class="clipbtn" @click="delpic()">
                 <i class="fa fa-times"></i>
               </div>
             </div>
@@ -185,6 +185,11 @@ export default {
             }
             this.$store.commit('addParts', {bookid: this.bookid, partid: res.data.id, part: res.data})
             this.$store.commit('addRelation', relationdata)
+            this.picdisplay = []
+            if (this.editpart.pic) {
+              this.picdisplay = this.editpart.pic.split('++@@++').filter(p => p.trim()).map(p => ({ url: this.$store.state.api + p, file: null }))
+            }
+            this.picindex = 0
             this.show = false
             this.$bus.emit('popupcheck')
           }
@@ -193,6 +198,11 @@ export default {
         req.post('bookupdatepart', this.editpart).then(res => {
           if (res.data === 'done') {
             this.parts[this.bookid][this.partid] = this.editpart
+            this.picdisplay = []
+            if (this.editpart.pic) {
+              this.picdisplay = this.editpart.pic.split('++@@++').filter(p => p.trim()).map(p => ({ url: this.$store.state.api + p, file: null }))
+            }
+            this.picindex = 0
             this.$bus.emit('popupcheck')
           } else {
             this.$bus.emit('popuperror', '修改失败')
@@ -234,6 +244,56 @@ export default {
     },
     zoompic() {
       this.zoomPic = !this.zoomPic
+    },
+    async delpic() {
+      if (this.picdisplay.length === 0) return
+      const item = this.picdisplay[this.picindex]
+      if (!item) return
+      const isServerImage = !item.file
+      if (isServerImage) {
+        const pathStart = item.url.indexOf('/f/')
+        if (pathStart === -1) {
+          this.$bus.emit('popuperror', '路径异常')
+          return
+        }
+        const serverPath = item.url.substring(pathStart + 1)
+        try {
+          const res = await req.post('fdel', { del: serverPath })
+          if (res.data !== 'done') {
+            this.$bus.emit('popuperror', '删除失败')
+            return
+          }
+        } catch (e) {
+          this.$bus.emit('popuperror', '删除失败')
+          return
+        }
+      }
+      this.picdisplay.splice(this.picindex, 1)
+      if (this.picindex >= this.picdisplay.length) {
+        this.picindex = Math.max(0, this.picdisplay.length - 1)
+      }
+      if (this.picdisplay.length === 0) {
+        this.zoomPic = false
+      }
+      if (this.edittype === 'edit' && isServerImage) {
+        const remainingServerPaths = this.picdisplay
+          .filter(p => !p.file)
+          .map(p => p.url.substring(p.url.indexOf('/f/') + 1))
+        const newPicStr = remainingServerPaths.join('++@@++')
+        try {
+          const res = await req.post('bookupdatepart', { ...this.editpart, pic: newPicStr })
+          if (res.data === 'done') {
+            this.editpart.pic = newPicStr
+            this.$bus.emit('popupcheck')
+          } else {
+            this.$bus.emit('popuperror', '修改失败')
+          }
+        } catch (e) {
+          this.$bus.emit('popuperror', '修改失败')
+        }
+      } else {
+        this.$bus.emit('popupcheck')
+      }
     }
   },
   computed: mapState({
