@@ -46,16 +46,42 @@
       </div>
       <div class="part-space"></div>
       <div class="desc">
+        <div
+          class="highlight-layer"
+          ref="highlightLayer"
+          v-show="isSearch && matchCount > 0"
+          v-html="highlightedContent"
+          :style="'font-size:'+contentFontSize+'px;'"
+        ></div>
         <textarea
           ref="descTextarea"
           class="part-input"
+          :class="{ searching: isSearch && matchCount > 0 }"
           :style="'font-size:'+contentFontSize+'px;caret-witch=4px;'"
           placeholder="DESC"
           v-model="editpart.desc"
           @keydown.tab="handleTab"
           @emacs-save="handleEmacsSave"
+          @emacs-search="handleSearch"
+          @scroll="syncHighlightScroll"
           >
         </textarea>
+        <div class="searchbox" v-if="isSearch">
+          <input
+            ref="searchInput"
+            class="search-input"
+            type="text"
+            v-model="searchText"
+            placeholder="搜索..."
+            @input="doSearch"
+            @keydown="onSearchKeydown"
+          />
+          <span class="search-count" v-if="searchText">{{ currentMatch + 1 }} / {{ matchCount }}</span>
+          <span class="search-count" v-else>0 / 0</span>
+          <span class="search-btn" @click="prevMatch"><i class="fa fa-chevron-left"></i></span>
+          <span class="search-btn" @click="nextMatch"><i class="fa fa-chevron-right"></i></span>
+          <span class="search-btn" @click="closeSearch"><i class="fa fa-times"></i></span>
+        </div>
       </div>
       <div class="part-space"></div>
       <div class="part-space"></div>
@@ -109,7 +135,12 @@ export default {
       pic: [],
       isPicChanged: false,
       picindex: 0,
-      zoomPic: false
+      zoomPic: false,
+      isSearch: false,
+      searchText: '',
+      matchCount: 0,
+      currentMatch: 0,
+      matchPositions: []
     }
   },
   methods: {
@@ -143,6 +174,91 @@ export default {
       // 处理 Ctrl+X Ctrl+S 或 Ctrl+X S 触发的保存事件
       console.log('Emacs save triggered');
       this.saveEdit();
+    },
+    handleSearch() {
+      this.isSearch = !this.isSearch
+      if (this.isSearch) {
+        this.$nextTick(() => {
+          if (this.$refs.searchInput) {
+            this.$refs.searchInput.focus()
+          }
+        })
+      } else {
+        this.closeSearch()
+      }
+    },
+    doSearch() {
+      const text = this.editpart.desc || ''
+      const query = this.searchText
+      this.matchPositions = []
+      if (query && text) {
+        let pos = 0
+        while ((pos = text.indexOf(query, pos)) !== -1) {
+          this.matchPositions.push(pos)
+          pos += query.length
+        }
+      }
+      this.matchCount = this.matchPositions.length
+      this.currentMatch = 0
+      if (this.matchPositions.length > 0) {
+        this.gotoMatch(0)
+      }
+    },
+    onSearchKeydown(e) {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        this.closeSearch()
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        this.prevMatch()
+      } else if (e.key === 'ArrowRight' || e.key === 'Enter') {
+        e.preventDefault()
+        this.nextMatch()
+      }
+    },
+    gotoMatch(index) {
+      if (this.matchPositions.length === 0) return
+      if (index < 0) index = this.matchPositions.length - 1
+      if (index >= this.matchPositions.length) index = 0
+      this.currentMatch = index
+      const textarea = this.$refs.descTextarea
+      if (!textarea) return
+      const pos = this.matchPositions[index]
+      const queryLen = this.searchText.length
+      textarea.focus()
+      textarea.setSelectionRange(pos, pos + queryLen)
+      // 滚动到匹配位置
+      const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight)
+      const linesBefore = textarea.value.substring(0, pos).split('\n').length - 1
+      textarea.scrollTop = linesBefore * lineHeight
+      this.$nextTick(() => {
+        this.syncHighlightScroll()
+      })
+    },
+    prevMatch() {
+      if (this.matchPositions.length === 0) return
+      this.gotoMatch(this.currentMatch - 1)
+    },
+    nextMatch() {
+      if (this.matchPositions.length === 0) return
+      this.gotoMatch(this.currentMatch + 1)
+    },
+    closeSearch() {
+      this.isSearch = false
+      this.searchText = ''
+      this.matchCount = 0
+      this.currentMatch = 0
+      this.matchPositions = []
+      const textarea = this.$refs.descTextarea
+      if (textarea) textarea.focus()
+    },
+    syncHighlightScroll() {
+      const textarea = this.$refs.descTextarea
+      const layer = this.$refs.highlightLayer
+      if (textarea && layer) {
+        layer.scrollTop = textarea.scrollTop
+        layer.scrollLeft = textarea.scrollLeft
+      }
     },
     async saveEdit() {
       if (this.picdisplay.length > 0) {
@@ -231,6 +347,9 @@ export default {
           age: 0,
           desc: ''
         }
+        this.picdisplay = []
+        this.picindex = 0
+        this.zoomPic = false
       }
     },
     fontsize(num) {
@@ -296,10 +415,43 @@ export default {
       }
     }
   },
-  computed: mapState({
-    relationtypelist: state => state.relationtypelist,
-    parts: state => state.parts
-  })
+  watch: {
+    'editpart.desc': function() {
+      if (this.isSearch && this.searchText) {
+        this.doSearch()
+      }
+    }
+  },
+  computed: {
+    ...mapState({
+      relationtypelist: state => state.relationtypelist,
+      parts: state => state.parts
+    }),
+    highlightedContent() {
+      if (!this.isSearch || this.matchCount === 0) return ''
+      const text = this.editpart.desc || ''
+      const query = this.searchText
+      if (!query) return ''
+      const escapeHtml = (str) => {
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      }
+      let result = ''
+      let lastPos = 0
+      for (let i = 0; i < this.matchPositions.length; i++) {
+        const pos = this.matchPositions[i]
+        const end = pos + query.length
+        result += escapeHtml(text.substring(lastPos, pos))
+        if (i === this.currentMatch) {
+          result += '<span class="hl-current">' + escapeHtml(text.substring(pos, end)) + '</span>'
+        } else {
+          result += '<span class="hl-match">' + escapeHtml(text.substring(pos, end)) + '</span>'
+        }
+        lastPos = end
+      }
+      result += escapeHtml(text.substring(lastPos))
+      return result
+    }
+  }
 }
 </script>
 <style lang="stylus" scoped>
@@ -320,11 +472,44 @@ export default {
   display flex
   flex-direction column
   min-height 0
+  position relative
+  .highlight-layer
+    position absolute
+    top 0
+    left 0
+    width 100%
+    height 100%
+    overflow hidden
+    pointer-events none
+    z-index 0
+    margin 0
+    padding 2px
+    border none
+    border-bottom solid 1px red
+    box-sizing border-box
+    white-space pre-wrap
+    word-wrap break-word
+    color transparent
+    font-family 'FontEn','FontRound'
+    line-height normal
+    .hl-match
+      background-color rgba(255, 255, 0, 0.3)
+      color transparent
+    .hl-current
+      background-color rgba(255, 0, 0, 0.5)
+      color transparent
   .part-input
     flex 1 !important
     width 100% !important
     resize none !important
     box-sizing border-box !important
+    position relative
+    z-index 1
+    &.searching
+      color transparent
+      -webkit-text-fill-color transparent
+      background-color transparent
+      caret-color #39ff14
 .noborder
   border none !important
   box-shadow none !important
@@ -355,6 +540,38 @@ export default {
       font-size 14px
       padding 5px 10px
       background-color rgba(0, 0, 0, 0.5)
+.searchbox
+  position absolute
+  top 10px
+  right 10px
+  display flex
+  align-items center
+  gap 5px
+  background-color black
+  border solid 1px red
+  padding 5px 8px
+  z-index 1001
+  .search-input
+    width 150px
+    border none
+    border-bottom solid 1px red
+    background-color black
+    color aqua
+    outline none
+    font-size 12px
+    padding 2px 4px
+  .search-count
+    color #00d944
+    font-size 12px
+    min-width 50px
+    text-align center
+  .search-btn
+    cursor pointer
+    color red
+    padding 2px 6px
+    &:hover
+      color white
+      background-color red
 </style>
 <style lang="stylus" src='../../css/bookpart.styl' scoped></style>
 <style lang="stylus" src='../../css/cyber.styl' scoped></style>

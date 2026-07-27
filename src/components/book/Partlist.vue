@@ -15,7 +15,7 @@
     </div>
     <div class="clipbtn" v-show="isshowbtns" v-if="isshowUnlockPad">
       <!-- <span>{{ passSource }}</span> -->
-      <input v-model="pass" type="password" @keyup.enter="unlock"/>
+      <input ref="passInput" v-model="pass" type="password" @keyup.enter="unlock"/>
       &nbsp;
       <span @click="unlock">
         <i class="fa fa-check"></i>
@@ -57,7 +57,7 @@ export default {
       passSource: '',
       pass: '',
       isshowUnlockPad: false,
-      islock: false,
+      islock: true,
 
       partlist: [],
       partlistzind: [],
@@ -98,6 +98,11 @@ export default {
     showUnlockPad() {
       this.passSource = 'saw'
       this.isshowUnlockPad = true
+      this.$nextTick(() => {
+        if (this.$refs.passInput) {
+          this.$refs.passInput.focus()
+        }
+      })
     },
     unlock() {
       if (this.pass === this.passSource) {

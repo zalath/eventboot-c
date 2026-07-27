@@ -89,6 +89,10 @@ export default {
         this.killLine(target);
         handled = true;
         break;
+      case 's': // Search
+        this.triggerSearch(target);
+        handled = true;
+        break;
       case 'backspace': // Backspace (删除到上一个回车或者空格)
         this.deleteToLineStart(target);
         handled = true;
@@ -192,6 +196,16 @@ export default {
         detail: { target }
       });
       target.dispatchEvent(saveEvent);
+    },
+    /**
+     * 触发搜索事件
+     */
+    triggerSearch(target) {
+      const searchEvent = new CustomEvent('emacs-search', {
+        bubbles: true,
+        detail: { target }
+      });
+      target.dispatchEvent(searchEvent);
     },
     /**
      * 触发关闭事件
