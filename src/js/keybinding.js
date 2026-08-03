@@ -59,21 +59,33 @@ export default {
         return;
       }
 
-      // 忽略带有 Alt 或 Meta (Command) 键的组合，只处理 Ctrl
-      if (!e.ctrlKey || e.altKey || e.metaKey) {
+      // 忽略带有 Meta (Command) 键的组合，只处理 Ctrl 或 Alt
+      if (e.metaKey) {
         return;
       }
-      if (e.altKey) {
+
+      // 处理 Alt 组合键（用于 moveToPrevMark / moveToNextMark）
+      if (e.altKey && !e.ctrlKey) {
         switch (key) {
-        case 'f':
+        case 'f': // 移动到下一个标点符号
           this.moveToNextMark(target);
           handled = true;
           break;
-        case 'b':
+        case 'b': // 移动到上一个标点符号
           this.moveToPrevMark(target);
           handled = true;
           break;
         }
+        if (handled) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+        }
+        return;
+      }
+
+      // 只处理 Ctrl 组合键
+      if (!e.ctrlKey) {
+        return;
       }
 
       switch (key) {
@@ -104,7 +116,6 @@ export default {
         handled = true;
         break;
       case 'w':
-        // 等待后面的输入，进行进一步的命令匹配，比如 Ctrl+X Ctrl+S
         // 后面的命令可能加ctrl可能不加，要分开处理
         this.cut(target);
         handled = true;
@@ -157,8 +168,8 @@ export default {
     handleSecondKey(e, key, target) {
       let handled = false;
 
-      if (e.ctrlKey && key === 'h') {
-        // Ctrl+X Ctrl+h: 全选
+      if (!e.ctrlKey && key === 'h') {
+        // Ctrl+X h: 全选
         e.preventDefault();
         this.selectAll(target);
         handled = true;
@@ -269,7 +280,9 @@ export default {
       el.setSelectionRange(lineEnd, lineEnd);
     },
     /**
-     * 移动到上一个标点符号
+     * 移动到上一个标点符号的后面
+     * - 如果前一个字符就是标点，则仅移动一个位置
+     * - 否则移动到上一个标点符号的后面
      */
     moveToPrevMark(el) {
       const text = el.value;
@@ -277,16 +290,25 @@ export default {
       if (currentPos <= 0) {
         return;
       }
+      // 如果前一个字符就是标点，仅移动一个位置
+      if (delimiterRegex.test(text[currentPos - 1])) {
+        el.setSelectionRange(currentPos - 1, currentPos - 1);
+        return;
+      }
+      // 向前查找上一个标点符号，移动到它后面
       for (let i = currentPos - 1; i >= 0; i--) {
         if (delimiterRegex.test(text[i])) {
-          el.setSelectionRange(i, i);
+          el.setSelectionRange(i + 1, i + 1);
           return;
         }
       }
+      // 没找到则移动到文本开头
       el.setSelectionRange(0, 0);
     },
     /**
-     * 移动到下一个标点符号
+     * 移动到下一个标点符号的后面
+     * - 如果后一个字符就是标点，则仅移动一个位置
+     * - 否则移动到下一个标点符号的后面
      */
     moveToNextMark(el) {
       const text = el.value;
@@ -294,6 +316,13 @@ export default {
       if (currentPos >= text.length) {
         return;
       }
+      // 如果后一个字符就是标点，仅移动一个位置
+      if (delimiterRegex.test(text[currentPos])) {
+        el.setSelectionRange(currentPos + 1, currentPos + 1);
+        return;
+      }
+
+      // 向后查找下一个标点符号，移动到它后面
       for (let i = currentPos; i < text.length; i++) {
         if (delimiterRegex.test(text[i])) {
           el.setSelectionRange(i, i);
@@ -301,6 +330,7 @@ export default {
         }
       }
 
+      // 没找到则移动到文本末尾
       el.setSelectionRange(text.length, text.length);
     },
     /**
