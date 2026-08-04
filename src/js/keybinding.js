@@ -124,6 +124,14 @@ export default {
         this.deleteForward(target);
         handled = true;
         break;
+      case 'r': // Replace (Ctrl+R for replace current, Ctrl+Shift+R for replace all)
+        if (e.shiftKey) {
+          this.triggerReplaceAll(target);
+        } else {
+          this.triggerReplaceCurrent(target);
+        }
+        handled = true;
+        break;
       case '=': // Increase font size
         this.increaseFontSize(target, 2);
         handled = true;
@@ -217,6 +225,26 @@ export default {
         detail: { target }
       });
       target.dispatchEvent(searchEvent);
+    },
+    /**
+     * 触发替换当前事件 (Ctrl+R)
+     */
+    triggerReplaceCurrent(target) {
+      const replaceEvent = new CustomEvent('emacs-replace-current', {
+        bubbles: true,
+        detail: { target }
+      });
+      target.dispatchEvent(replaceEvent);
+    },
+    /**
+     * 触发全部替换事件 (Ctrl+Shift+R)
+     */
+    triggerReplaceAll(target) {
+      const replaceEvent = new CustomEvent('emacs-replace-all', {
+        bubbles: true,
+        detail: { target }
+      });
+      target.dispatchEvent(replaceEvent);
     },
     /**
      * 触发关闭事件

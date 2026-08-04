@@ -63,24 +63,40 @@
           @keydown.tab="handleTab"
           @emacs-save="handleEmacsSave"
           @emacs-search="handleSearch"
+          @emacs-replace-current="handleReplaceCurrent"
+          @emacs-replace-all="handleReplaceAll"
           @scroll="syncHighlightScroll"
           >
         </textarea>
         <div class="searchbox" v-if="isSearch">
-          <input
-            ref="searchInput"
-            class="search-input"
-            type="text"
-            v-model="searchText"
-            placeholder="搜索..."
-            @input="doSearch"
-            @keydown="onSearchKeydown"
-          />
-          <span class="search-count" v-if="searchText">{{ currentMatch + 1 }} / {{ matchCount }}</span>
-          <span class="search-count" v-else>0 / 0</span>
-          <span class="search-btn" @click="prevMatch"><i class="fa fa-chevron-left"></i></span>
-          <span class="search-btn" @click="nextMatch"><i class="fa fa-chevron-right"></i></span>
-          <span class="search-btn" @click="closeSearch"><i class="fa fa-times"></i></span>
+          <div class="search-row">
+            <input
+              ref="searchInput"
+              class="search-input"
+              type="text"
+              v-model="searchText"
+              placeholder="搜索..."
+              @input="doSearch"
+              @keydown="onSearchKeydown"
+            />
+            <span class="search-count" v-if="searchText">{{ currentMatch + 1 }} / {{ matchCount }}</span>
+            <span class="search-count" v-else>0 / 0</span>
+            <span class="search-btn" @click="prevMatch"><i class="fa fa-chevron-left"></i></span>
+            <span class="search-btn" @click="nextMatch"><i class="fa fa-chevron-right"></i></span>
+            <span class="search-btn" @click="closeSearch"><i class="fa fa-times"></i></span>
+          </div>
+          <div class="search-row">
+            <input
+              ref="replaceInput"
+              class="search-input"
+              type="text"
+              v-model="replaceText"
+              placeholder="替换为..."
+              @keydown="onReplaceKeydown"
+            />
+            <span class="search-btn replace-btn" @click="replaceCurrent" :title="'替换当前 (Ctrl+R)'"><i class="fa fa-check"></i></span>
+            <span class="search-btn replace-btn" @click="replaceAll" :title="'全部替换 (Ctrl+Shift+R)'"><i class="fa fa-recycle"></i></span>
+          </div>
         </div>
       </div>
       <div class="part-space"></div>
@@ -138,6 +154,7 @@ export default {
       zoomPic: false,
       isSearch: false,
       searchText: '',
+      replaceText: '',
       matchCount: 0,
       currentMatch: 0,
       matchPositions: []
@@ -176,15 +193,46 @@ export default {
       this.saveEdit();
     },
     handleSearch() {
-      this.isSearch = !this.isSearch
-      if (this.isSearch) {
+      if (this.isSearch && this.searchText) {
+        // 搜索状态下，再次按Ctrl+S则跳转到下一个匹配
+        this.nextMatch()
+      } else {
+        this.isSearch = !this.isSearch
+        if (this.isSearch) {
+          this.$nextTick(() => {
+            if (this.$refs.searchInput) {
+              this.$refs.searchInput.focus()
+            }
+          })
+        } else {
+          this.closeSearch()
+        }
+      }
+    },
+    handleReplaceCurrent() {
+      if (!this.isSearch) {
+        // 如果搜索面板未打开，先打开
+        this.isSearch = true
         this.$nextTick(() => {
           if (this.$refs.searchInput) {
             this.$refs.searchInput.focus()
           }
         })
       } else {
-        this.closeSearch()
+        this.replaceCurrent()
+      }
+    },
+    handleReplaceAll() {
+      if (!this.isSearch) {
+        // 如果搜索面板未打开，先打开
+        this.isSearch = true
+        this.$nextTick(() => {
+          if (this.$refs.searchInput) {
+            this.$refs.searchInput.focus()
+          }
+        })
+      } else {
+        this.replaceAll()
       }
     },
     doSearch() {
@@ -246,11 +294,61 @@ export default {
     closeSearch() {
       this.isSearch = false
       this.searchText = ''
+      this.replaceText = ''
       this.matchCount = 0
       this.currentMatch = 0
       this.matchPositions = []
       const textarea = this.$refs.descTextarea
       if (textarea) textarea.focus()
+    },
+    onReplaceKeydown(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        if (e.shiftKey) {
+          this.replaceAll()
+        } else {
+          this.replaceCurrent()
+        }
+      }
+    },
+    replaceCurrent() {
+      if (this.matchPositions.length === 0 || !this.searchText) return
+      const textarea = this.$refs.descTextarea
+      if (!textarea) return
+      const pos = this.matchPositions[this.currentMatch]
+      const queryLen = this.searchText.length
+      const newText = textarea.value.substring(0, pos) + this.replaceText + textarea.value.substring(pos + queryLen)
+      textarea.value = newText
+      this.editpart.desc = newText
+      // 重新搜索
+      this.doSearch()
+      // 光标定位到替换后的位置
+      this.$nextTick(() => {
+        textarea.focus()
+        const newPos = pos + this.replaceText.length
+        textarea.setSelectionRange(newPos, newPos)
+        // 如果还有匹配项，跳转到下一个
+        if (this.matchPositions.length > 0) {
+          this.gotoMatch(this.currentMatch)
+        }
+      })
+    },
+    replaceAll() {
+      if (this.matchPositions.length === 0 || !this.searchText) return
+      const textarea = this.$refs.descTextarea
+      if (!textarea) return
+      const text = textarea.value
+      const replaced = text.split(this.searchText).join(this.replaceText)
+      textarea.value = replaced
+      this.editpart.desc = replaced
+      // 重新搜索
+      this.doSearch()
+      this.$nextTick(() => {
+        textarea.focus()
+        if (this.matchPositions.length > 0) {
+          this.gotoMatch(0)
+        }
+      })
     },
     syncHighlightScroll() {
       const textarea = this.$refs.descTextarea
@@ -506,8 +604,6 @@ export default {
     position relative
     z-index 1
     &.searching
-      color transparent
-      -webkit-text-fill-color transparent
       background-color transparent
       caret-color #39ff14
 .noborder
@@ -545,12 +641,16 @@ export default {
   top 10px
   right 10px
   display flex
-  align-items center
+  flex-direction column
   gap 5px
   background-color black
   border solid 1px red
   padding 5px 8px
   z-index 1001
+  .search-row
+    display flex
+    align-items center
+    gap 5px
   .search-input
     width 150px
     border none
@@ -572,6 +672,11 @@ export default {
     &:hover
       color white
       background-color red
+    &.replace-btn
+      color #ffd700
+      &:hover
+        color black
+        background-color #ffd700
 </style>
 <style lang="stylus" src='../../css/bookpart.styl' scoped></style>
 <style lang="stylus" src='../../css/cyber.styl' scoped></style>
