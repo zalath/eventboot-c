@@ -176,7 +176,7 @@ export default {
     handleSecondKey(e, key, target) {
       let handled = false;
 
-      if (!e.ctrlKey && key === 'h') {
+      if (e.ctrlKey && key === 'h') {
         // Ctrl+X h: 全选
         e.preventDefault();
         this.selectAll(target);
