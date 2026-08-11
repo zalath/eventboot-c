@@ -29,7 +29,7 @@
             <i class="fa fa-code"/>
           </div>
           <div class="clipbtn fr" @click="deQrcode()">
-            <i class="fa fa-circle"/>
+            <i class="fa fa-qrcode"/>
             <input type="file" style="display:none" ref="qrde" @change="deQrcodeFile($event)">
           </div>
           <div class="clipbtn fr" @click="toggleLarge()">
@@ -73,9 +73,6 @@
         </div>
         <div class="toolbtn clipbtn" @click="copy(ip)">
           {{ip}}
-        </div>
-        <div class="toolbtn clipbtn" @click="deQrcode()">
-          读取二维码
         </div>
         <div class="cb"/>
         <div class="toolbtn clipbtn" @click="copy(timestamps)">
@@ -228,29 +225,33 @@ export default {
       this.$refs.qrde.click();
     },
     deQrcodeFile: function(event) {
-      console.log('infileupload')
       event.preventDefault();
       var file = this.$refs.qrde.files[0]
-      console.log(file)
+      if (!file) return;
       var fr = new FileReader()
-      console.log('reader new')
+      var that = this
       fr.onload = function(e) {
-        console.log('1')
-
-        // const data = png.decode(e.target.result);
-        // const out = {
-        //   data: new Uint8ClampedArray(png.toRGBA8(data)[0]),
-        //   height: data.height,
-        //   width: data.width
-        // };
-        // const code = jsQR(out.data, out.width, out.height);
-        var f = e.target.result
-        console.log(f)
+        var dataUrl = e.target.result
         var img = new Image()
-        img.src = f
-        console.log(img.width, img.height)
-        var code = jsQR(f, img.width, img.height)
-        console.log(code)
+        img.onload = () => {
+          var canvas = document.createElement('canvas')
+          canvas.width = img.width
+          canvas.height = img.height
+          var ctx = canvas.getContext('2d')
+          ctx.drawImage(img, 0, 0)
+          var imageData = ctx.getImageData(0, 0, img.width, img.height)
+          var code = jsQR(imageData.data, imageData.width, imageData.height)
+          console.log(code)
+          if (code && code.data) {
+            that.targetval = code.data
+            that.toggleTarget(true)
+            console.log('showing result');
+            // alert('解析结果: ' + code.data)
+          } else {
+            that.$bus.emit('popuperror')
+          }
+        }
+        img.src = dataUrl
       }
       fr.readAsDataURL(file)
     },
@@ -259,6 +260,15 @@ export default {
         ? JSON.stringify(this.targetval, null, 2)
         : String(this.targetval)
       this.copy(val)
+      // 如果已生成二维码，保存为图片
+      if (this.isqr && this.$refs.qrCodeBox) {
+        const canvas = this.$refs.qrCodeBox.querySelector('canvas')
+        if (canvas) {
+          const dataUrl = canvas.toDataURL('image/png')
+          const name = (this.originval || 'qrcode').substring(0, 20).replace(/[\\/:*?"<>|]/g, '_')
+          this.$ipc.send('saveImage', { dataUrl: dataUrl, name: name + '.png' })
+        }
+      }
       this.$bus.emit('popupcopyed')
     },
     toggleTarget: function(is) {

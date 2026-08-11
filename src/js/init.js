@@ -99,6 +99,25 @@ init.initipc = function (win, ipc, shell, app) {
   ipc.on('copy', function(event, args) {
     clipboard.writeText(args)
   })
+  ipc.on('saveImage', function(event, args) {
+    dialog.showSaveDialog({
+      title: '保存图片',
+      defaultPath: args.name || 'image.png',
+      filters: [{ name: 'PNG Image', extensions: ['png'] }]
+    }).then(result => {
+      if (result.canceled || !result.filePath) return;
+      var dataUrl = args.dataUrl;
+      var base64Data = dataUrl.replace(/^data:image\/png;base64,/, '');
+      require('fs').writeFile(result.filePath, base64Data, 'base64', function(err) {
+        if (err) {
+          console.error('保存图片失败:', err);
+          win.webContents.send('saveImageFailed', err.message);
+        } else {
+          win.webContents.send('saveImageSuccess', result.filePath);
+        }
+      });
+    })
+  })
   ipc.on('genclist', function(event, args) {
     encpt.encemp(win)
   })
