@@ -7,7 +7,7 @@
       <i class="fa fa-link"></i>
     </div>
     <div class="clipbtn" v-show="isshowbtns" title="关系图" @click="showMap()">
-      <i class="fa fa-gears"></i>
+      <i class="fa fa-map-o"></i>
     </div>
     <div class="clipbtn" v-show="isshowbtns" @click="lock">
       <i v-if="islock" class="fa fa-lock"></i>

@@ -38,7 +38,7 @@
           <div class="clipbtn fr" @click="toggleTarget()">
             <i class="fa fa-retweet"/>
           </div>
-          <div class="clipbtn fr" @click="copy(targetval)">
+          <div class="clipbtn fr" @click="copyresult()">
             <i class="fa fa-copy"/>
           </div>
           <div class="clipbtn fr" @click="()=>{originval=''}">
@@ -76,9 +76,6 @@
         </div>
         <div class="toolbtn clipbtn" @click="deQrcode()">
           读取二维码
-        </div>
-        <div class="toolbtn clipbtn" @click="getclist()">
-          加密测试
         </div>
         <div class="cb"/>
         <div class="toolbtn clipbtn" @click="copy(timestamps)">
@@ -257,9 +254,12 @@ export default {
       }
       fr.readAsDataURL(file)
     },
-    getclist() {
-      console.log('in')
-      this.$ipc.send('genclist', '');
+    copyresult: function() {
+      const val = typeof this.targetval === 'object' && this.targetval !== null
+        ? JSON.stringify(this.targetval, null, 2)
+        : String(this.targetval)
+      this.copy(val)
+      this.$bus.emit('popupcopyed')
     },
     toggleTarget: function(is) {
       this.showTarget = typeof is === typeof true ? is : !this.showTarget
