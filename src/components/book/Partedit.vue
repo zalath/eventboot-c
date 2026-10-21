@@ -299,9 +299,10 @@ export default {
       const span = layer.querySelectorAll('span')[index]
       if (!span) return
       // 用镜像层中高亮 span 的实际位置定位，兼容自动换行（line-height normal 时 parseFloat 为 NaN，不能按行号估算）
+      // 必须加回 layer.scrollTop 换算成内容坐标：远距离跳转时镜像层还停留在旧滚动位置，直接用视口差值会偏差一个旧偏移量
       const layerRect = layer.getBoundingClientRect()
       const spanRect = span.getBoundingClientRect()
-      const top = spanRect.top - layerRect.top
+      const top = spanRect.top - layerRect.top + layer.scrollTop
       textarea.scrollTop = Math.max(0, top - (textarea.clientHeight - spanRect.height) / 2)
       this.syncHighlightScroll()
     },
@@ -636,11 +637,12 @@ export default {
     color transparent
     font-family 'FontEn','FontRound'
     line-height normal
-    .hl-match
-      background-color rgba(255, 255, 0, 0.3)
+    // v-html 注入的 span 没有 scoped data-v 属性，必须用 :deep() 才能命中
+    :deep(.hl-match)
+      background-color rgba(0,122,255, 1)
       color transparent
-    .hl-current
-      background-color rgba(255, 0, 0, 0.5)
+    :deep(.hl-current)
+      background-color rgba(50, 50, 255, 0.8)// rgba(255, 255, 255, 0.6)
       color transparent
   .part-input
     flex 1 !important
@@ -652,6 +654,9 @@ export default {
     &.searching
       background-color transparent
       caret-color #39ff14
+      // 当前命中用高亮层红色标识，屏蔽原生选区颜色避免叠色
+      &::selection
+        background-color transparent
 .noborder
   border none !important
   box-shadow none !important
