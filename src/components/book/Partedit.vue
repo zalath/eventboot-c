@@ -157,7 +157,14 @@ export default {
       replaceText: '',
       matchCount: 0,
       currentMatch: 0,
-      matchPositions: []
+      matchPositions: [],
+      resizeObserver: null
+    }
+  },
+  beforeUnmount() {
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect()
+      this.resizeObserver = null
     }
   },
   methods: {
@@ -273,15 +280,30 @@ export default {
       if (!textarea) return
       const pos = this.matchPositions[index]
       const queryLen = this.searchText.length
-      textarea.focus()
+      // 在搜索/替换框中输入时不抢焦点，避免后续字符打进正文
+      const active = document.activeElement
+      const typingInSearch = active === this.$refs.searchInput || active === this.$refs.replaceInput
+      if (!typingInSearch) {
+        textarea.focus()
+      }
       textarea.setSelectionRange(pos, pos + queryLen)
-      // 滚动到匹配位置
-      const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight)
-      const linesBefore = textarea.value.substring(0, pos).split('\n').length - 1
-      textarea.scrollTop = linesBefore * lineHeight
+      // 等高亮层按新渲染结果更新后再滚动定位
       this.$nextTick(() => {
-        this.syncHighlightScroll()
+        this.scrollToMatch(index)
       })
+    },
+    scrollToMatch(index) {
+      const textarea = this.$refs.descTextarea
+      const layer = this.$refs.highlightLayer
+      if (!textarea || !layer || this.matchCount === 0) return
+      const span = layer.querySelectorAll('span')[index]
+      if (!span) return
+      // 用镜像层中高亮 span 的实际位置定位，兼容自动换行（line-height normal 时 parseFloat 为 NaN，不能按行号估算）
+      const layerRect = layer.getBoundingClientRect()
+      const spanRect = span.getBoundingClientRect()
+      const top = spanRect.top - layerRect.top
+      textarea.scrollTop = Math.max(0, top - (textarea.clientHeight - spanRect.height) / 2)
+      this.syncHighlightScroll()
     },
     prevMatch() {
       if (this.matchPositions.length === 0) return
@@ -354,6 +376,8 @@ export default {
       const textarea = this.$refs.descTextarea
       const layer = this.$refs.highlightLayer
       if (textarea && layer) {
+        // textarea 出现滚动条后内容宽度变窄，镜像层必须同步为同样的宽度，否则换行位置错开导致高亮偏移
+        layer.style.width = textarea.clientWidth + 'px'
         layer.scrollTop = textarea.scrollTop
         layer.scrollLeft = textarea.scrollLeft
       }
@@ -452,6 +476,10 @@ export default {
     },
     fontsize(num) {
       this.contentFontSize += num
+      // 字号变化可能使滚动条出现/消失，需要重新同步镜像层宽度
+      this.$nextTick(() => {
+        this.syncHighlightScroll()
+      })
     },
     nextpic(num) {
       if (this.picdisplay.length === 0) return
@@ -518,6 +546,24 @@ export default {
       if (this.isSearch && this.searchText) {
         this.doSearch()
       }
+    },
+    isSearch(val) {
+      if (!val) return
+      // textarea 在 v-if 的 show 容器内，搜索打开时才存在；同时用 ResizeObserver 兜住窗口/面板尺寸变化导致的滚动条增减
+      this.$nextTick(() => {
+        const textarea = this.$refs.descTextarea
+        if (!textarea) return
+        if (!this.resizeObserver && typeof ResizeObserver !== 'undefined') {
+          this.resizeObserver = new ResizeObserver(() => {
+            this.syncHighlightScroll()
+          })
+        }
+        if (this.resizeObserver) {
+          this.resizeObserver.disconnect()
+          this.resizeObserver.observe(textarea)
+        }
+        this.syncHighlightScroll()
+      })
     }
   },
   computed: {
