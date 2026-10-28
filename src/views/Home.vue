@@ -1,10 +1,8 @@
 <template>
   <div class="home">
+    <box></box>
     <template v-if="isloading">
       <loading></loading>
-    </template>
-    <template v-else>
-      <box></box>
     </template>
   </div>
 </template>

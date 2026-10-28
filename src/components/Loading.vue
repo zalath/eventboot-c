@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="loading">
     <div class="loading loadanime1"></div>
     <div class="loading loadanime2" @click="reloadapi()"></div>
     <div class="loading close fa fa-times" @click="close()"></div>

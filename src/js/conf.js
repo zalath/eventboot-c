@@ -3,6 +3,9 @@
 const { default: req } = require('./req');
 
 class conf { }
+
+conf.isApiAlive = false
+
 conf.getconflist = function(win) {
   // 获取后台的配置文件列表
   req.get('conflist').then((res) => {
@@ -21,6 +24,7 @@ conf.setconfname = function(win, name) {
 conf.getconfig = function(win) {
   var path = process.cwd() + '/c.json'
   var fs = require('fs')
+  if (!conf.isApiAlive) return
   fs.readFile(path, 'utf8', function (err, data) {
     if (!err) {
       req.post('getconffile', {filename:data}).then((res) => {
@@ -44,6 +48,7 @@ conf.checkapi = function(ip, url, win) {
   var ipreq = url + 'ping';
   req.ipget(ipreq).then((res) => {
     if (res.data.message === 'pong') {
+      conf.isApiAlive = true
       global.gconfapi = url
       this.getconfig(win)
       this.changeFTPip(ip)
